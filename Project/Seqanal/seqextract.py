@@ -3,16 +3,16 @@ __author__ = 'Kavin'
 import re
 import sys
 
-input_file = open(sys.argv[1], 'r')
+input_file = open(sys.argv[1], 'rU')
 
 ##sequences = []
 count = 0
-for line in input_file:
-    searchseq = re.search( r'Sequence: (.*)?\s$', line, re.M)
-    if searchseq:
-        count += 1
-        #print line
-        print '>',count,'\n',searchseq.group(1),'\n',
+line = input_file.read()
+searchseq = re.findall(r'Loop region: (\w*).*Sequence: (\w*)', line, re.DOTALL)
+
+
+for elements in searchseq:
+    print elements
 
 ##print sequences
 
