@@ -1,4 +1,8 @@
-compdata = function(data1, data2){
+# Usage: my.data.frame = compdata(dataset1, dataset2, dir=1)
+# dir = column from which to take data, 1 as default
+
+
+compdata = function(data1, data2, dir=1){
 	N = nrow(data1)
 	N2 = nrow(data2)
 	
@@ -12,6 +16,7 @@ compdata = function(data1, data2){
 	# set a window of allowable difference
 	w = 20
 	
+    
 	i = 1
 	while ((i+50) <= N){
     
@@ -20,8 +25,8 @@ compdata = function(data1, data2){
       i = i+1
     }
     
-		mean1 = mean(data1$For[i:(i+50)])
-		mean2 = mean(data2$For[i:(i+50)])
+		mean1 = mean(data1[i:(i+50),dir])
+		mean2 = mean(data2[i:(i+50),dir])
 		if (mean1 < (mean2-w) || mean1 > (mean2+w)){
 			result.df = rbind(result.df,c(i, data1$For[i], data2$For[i]))
 		}
