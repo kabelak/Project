@@ -1,8 +1,9 @@
-# Usage: my.data.frame = compdata(dataset1, dataset2, dir=1)
+# Usage: my.data.frame = compdata(dataset1, dataset2, dir=1, lv=10)
 # dir = column from which to take data, 1 as default
+# lv = value under which data from datasets will be ignored (when both datasets have values below or equal to that number)
 
 
-compdata = function(data1, data2, dir=1){
+compdata = function(data1, data2, dir=1, lv=10){
   N = nrow(data1)
   N2 = nrow(data2)
   
@@ -13,15 +14,15 @@ compdata = function(data1, data2, dir=1){
   result.df = data.frame(t(rep(NA,3)))
   names(result.df) = c("Nuc_Posn", "Value1", "Value2")
   
-  # set a window of allowable difference
-  w = 20
+  # set a window of allowable difference (for mean)
+  # w = 20
   
   
   i = 1
   while ((i+50) <= N){
     
     # Ignore low values
-    while ((data1$For[i] <= 15) && (data2$For[i] <= 15)){
+    while ((data1[i,dir] <= lv) && (data2[i,dir] <= lv)){
       i = i+1
     }
  
