@@ -21,7 +21,7 @@ compdata = function(data1, data2, dir=1){
   while ((i+50) <= N){
     
     # Ignore low values
-    while ((data1$For[i] <= 5) && (data2$For[i] <= 5)){
+    while ((data1$For[i] <= 15) && (data2$For[i] <= 15)){
       i = i+1
     }
  
@@ -29,6 +29,9 @@ compdata = function(data1, data2, dir=1){
     grad2 = lm(data2[i:(i+10),dir] ~ seq(1:11))$coefficients[["seq(1:11)"]]
     
     if (grad1 > grad2){
+      
+      # Condition - If previous entry in df was i-10, or a number of 10s consecutively behind, skip binding
+      
       result.df = rbind(result.df,c(i, data1[i,dir], data2[i,dir]))
     }
     
