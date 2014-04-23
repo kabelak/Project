@@ -24,12 +24,20 @@ compdata = function(data1, data2, dir=1){
     while ((data1$For[i] <= 5) && (data2$For[i] <= 5)){
       i = i+1
     }
+ 
+    grad1 = lm(data1[i:(i+10),dir] ~ seq(1:11))$coefficients[["seq(1:11)"]]
+    grad2 = lm(data2[i:(i+10),dir] ~ seq(1:11))$coefficients[["seq(1:11)"]]
     
-    mean1 = mean(data1[i:(i+50),dir])
-    mean2 = mean(data2[i:(i+50),dir])
-    if (mean1 < (mean2-w) || mean1 > (mean2+w)){
-      result.df = rbind(result.df,c(i, data1$For[i], data2$For[i]))
+    if (grad1 > grad2){
+      result.df = rbind(result.df,c(i, data1[i,dir], data2[i,dir]))
     }
+    
+    
+#    mean1 = mean(data1[i:(i+50),dir])
+#    mean2 = mean(data2[i:(i+50),dir])
+#    if (mean1 < (mean2-w) || mean1 > (mean2+w)){
+#      result.df = rbind(result.df,c(i, data1[i,dir], data2[i,dir]))
+#    }
     
     i = i + 10
   }
