@@ -36,6 +36,7 @@ compdata = function(data1, data2){
 }
 
 # Instead of mean, it may be a better idea to look at gradient - if the gradient is considerably larger (more positive), it will show that a feature is starting, and that it will rise higher than the correspoding feature, if present, in the other data
+# lm(dataexex$For[1:11] ~ seq(1:11))$coefficients[["seq(1:11)"]] - extracts the gradient from the
 # Function to create empty df with colnames
 # nodata <- as.data.frame(setNames(replicate(5,numeric(0), simplify = F), letters[1:5]))
 
