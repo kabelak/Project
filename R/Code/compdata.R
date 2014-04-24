@@ -1,6 +1,6 @@
-# Usage: my.data.frame = compdata(dataset1, dataset2, dir=1, lv=10)
-# dir = column from which to take data, 1 as default
-# lv = value under which data from datasets will be ignored (when both datasets have values below or equal to that number)
+#' Usage: my.data.frame = compdata(dataset1, dataset2, dir=1, lv=10)
+#' dir = column from which to take data, 1 as default
+#' lv = value under which data from datasets will be ignored (when both datasets have values below or equal to that number)
 
 
 compdata = function(data1, data2, dir=1, lv=10){
@@ -19,7 +19,7 @@ compdata = function(data1, data2, dir=1, lv=10){
   
   
   i = 1
-  while ((i+50) <= N){
+  while ((i+10) <= N){
     
     # Ignore low values
     while ((data1[i,dir] <= lv) && (data2[i,dir] <= lv)){
