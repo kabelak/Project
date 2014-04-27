@@ -1,9 +1,11 @@
-#' Usage: my.data.frame = compdata(dataset1, dataset2, dir=1, lv=10)
+#' Usage: my.data.frame = compdata(dataset1, dataset2, dir=1, lv=10, w=10, s=10)
 #' dir = column from which to take data, 1 as default
 #' lv = value under which data from datasets will be ignored (when both datasets have values below or equal to that number)
+#' w = window of values to consider
+#' s = slide for each iteration
 
 
-compdata = function(data1, data2, dir=1, lv=10){
+compdata = function(data1, data2, dir=1, lv=10, w=10, s=10){
   N = nrow(data1)
   N2 = nrow(data2)
   
@@ -15,35 +17,37 @@ compdata = function(data1, data2, dir=1, lv=10){
   names(result.df) = c("Nuc_Posn", "Value1", "Value2")
   
   # set a window of allowable difference (for mean)
-  # w = 20
+  # meanw = 20
   
   
   i = 1
-  while ((i+10) <= N){
+  while ((i+s) <= N){
     
     # Ignore low values
     while ((data1[i,dir] <= lv) && (data2[i,dir] <= lv)){
       i = i+1
     }
  
-    grad1 = lm(data1[i:(i+10),dir] ~ seq(1:11))$coefficients[["seq(1:11)"]]
-    grad2 = lm(data2[i:(i+10),dir] ~ seq(1:11))$coefficients[["seq(1:11)"]]
+    grad1 = lm(data1[i:(i+w),dir] ~ seq(1:(1+w)))$coefficients[["seq(1:(1 + w))"]]
+    grad2 = lm(data2[i:(i+w),dir] ~ seq(1:(1+w)))$coefficients[["seq(1:(1 + w))"]]
     
     if (grad1 > grad2){
       
 ###### ADD: Condition - If previous entry in df was i-10, or a number of 10s consecutively behind, skip binding
+###### There should be a difference between forward and reverse - reverse should look at the gradient from the otehr side of the graph
+      
       
       result.df = rbind(result.df,c(i, data1[i,dir], data2[i,dir]))
     }
     
     
-#    mean1 = mean(data1[i:(i+50),dir])
-#    mean2 = mean(data2[i:(i+50),dir])
-#    if (mean1 < (mean2-w) || mean1 > (mean2+w)){
+#    mean1 = mean(data1[i:(i+w),dir])
+#    mean2 = mean(data2[i:(i+w),dir])
+#    if (mean1 < (mean2-meanw) || mean1 > (mean2+meanw)){
 #      result.df = rbind(result.df,c(i, data1[i,dir], data2[i,dir]))
 #    }
     
-    i = i + 10
+    i = i + s
   }
   
   # Remove NA's from first line
