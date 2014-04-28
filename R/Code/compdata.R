@@ -36,9 +36,9 @@ compdata = function(data1, data2, dir=1, lv=10, w=10, s=10){
     while ((i+s) <= N){
       
       # Ignore low values
-      #    while ((data1[i,dir] <= lv) && (data2[i,dir] <= lv)){
-      #      i = i+1
-      #    }
+          while ((data1[i,dir] <= lv) && (data2[i,dir] <= lv)){
+            i = i+1
+          }
       
       grad1 = lm(data1[i:(i+w),dir] ~ run)$coefficients[["run"]]
       grad2 = lm(data2[i:(i+w),dir] ~ run)$coefficients[["run"]]
