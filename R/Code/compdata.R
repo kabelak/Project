@@ -31,13 +31,22 @@ compdata = function(data1, data2, dir=1, lv=10, w=10, s=10){
     grad1 = lm(data1[i:(i+w),dir] ~ seq(1:(1+w)))$coefficients[["seq(1:(1 + w))"]]
     grad2 = lm(data2[i:(i+w),dir] ~ seq(1:(1+w)))$coefficients[["seq(1:(1 + w))"]]
     
-    if (grad1 > grad2){
+    # ignore until gradient next becomes positive and greater than grad2
+    if ((grad1 > grad2) && (grad1 > 0)){
       
 ###### ADD: Condition - If previous entry in df was i-10, or a number of 10s consecutively behind, skip binding
+########### if gradient is still positive, ignore; basically, ignore until gradient next becomes positive
 ###### There should be a difference between forward and reverse - reverse should look at the gradient from the otehr side of the graph
       
       
       result.df = rbind(result.df,c(i, data1[i,dir], data2[i,dir]))
+      
+      # if gradient is still positive, ignore
+      while ((lm(data1[i:(i+w),dir] ~ seq(1:(1+w)))$coefficients[["seq(1:(1 + w))"]]) > 0){
+        i = i + 10
+      }
+      
+      
     }
     
     
