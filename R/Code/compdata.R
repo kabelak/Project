@@ -20,19 +20,51 @@ compdata = function(data1, data2, dir=1, lv=10, w=10, s=10){
   # meanw = 20
   
   if (dir == 1){
+    
     i = N
-    while ((N-s) >= 0){
+    run = 1:(1+w)
+   # run = sort(run, decreasing = TRUE)
+    
+    while ((i-s) > 0){
       
-      grad1 = lm(data1[i:(i-w),dir] ~ (1+w):1)$coefficients[["seq(1:(1 + w))"]]
-      grad2 = lm(data2[i:(i-w),dir] ~ seq(1:(1+w)))$coefficients[["seq(1:(1 + w))"]]
+      # Ignore low values
+      while ((data1[i,dir] <= lv) && (data2[i,dir] <= lv)){
+        i = i-1
+      }
       
+      grad1 = lm(data1[i:(i-w),dir] ~ run)$coefficients[["run"]]
+      grad2 = lm(data2[i:(i-w),dir] ~ run)$coefficients[["run"]]
+      
+
+      # ignore until gradient next becomes positive and greater than grad2
+      if ((grad1 > grad2) && (grad1 > 0)){
+        
+        ###### ADD: Condition - If previous entry in df was i-10, or a number of 10s consecutively behind, skip binding
+        ########### if gradient is still positive, ignore; basically, ignore until gradient next becomes positive
+        ###### There should be a difference between forward and reverse - reverse should look at the gradient from the otehr side of the graph
+        
+        result.df = rbind(result.df,c(i, data1[i,dir], data2[i,dir]))
+        
+        # if gradient is still positive, ignore
+        while (((lm(data1[i:(i+w),dir] ~ run)$coefficients[["run"]]) > 0) && ((i-10) >= 0)){
+          i = i - 10
+        }
+      }
+      
+      i = i - s
+      }
+      
+      # Remove NA's from first line
+      result.df = result.df[-1,]
     }
-  }
+  
   
   
   if (dir == 2){
+    
     i = 1
     run = 1:(1+w)
+    
     while ((i+s) <= N){
       
       # Ignore low values
