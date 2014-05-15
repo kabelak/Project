@@ -12,15 +12,16 @@ matches = ()
 
 for line in f:
     if line.startswith('Match'):
+        line = re.sub('\n', '', line)
         matches1.append(line)
         line = next(f)
-        while not line.startswith('Match'):
+        while not line.startswith('None'):
+            line = re.sub('\n|\t', '', line)
             matches1.append(line)
             line = next(f)
         matches = matches + (matches1,)
         matches1= []
 
 print matches
-
 
 
