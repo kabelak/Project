@@ -13,7 +13,7 @@ print size
 outp =open("outputfile.fasta", "w")
 for i in range(0, size):
     if lines[i].startswith('>'):
-      entry = re.search('OS=([A-Z][a-zA-Z0-9_\-\.\[\]]*\s[a-zA-Z0-9_\-\.\[\]]*)\s', lines[i])
+      entry = re.search('OS=([A-Z]\w*\s\w*)\s', lines[i])
       if entry:
         org = entry.group(1)
         print org
