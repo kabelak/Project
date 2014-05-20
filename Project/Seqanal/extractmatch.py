@@ -1,24 +1,22 @@
 __author__ = 'Kavin'
 
-import re
 import sys
 
-f = open(sys.argv[1], 'rU')
+matches1 = []
+matches = ()
 
-matches = []
-
-# f.readline() until f.readline().startswith('Match')
-
-for line in f:
-    if line.startswith('Match'):
-        matches.append(line)
-
-print matches
-
-
-file = open('FilePath/OUTPUT.01')
-lines = file.read()
-file.close()
-with open("output.txt","w") as f:
-    for match in re.finditer(r"(?m)^\s*-+\s+\S+\s+(-?[\d.]+E[+-]\d+)", lines):
-        f.write(match.group(1)+"\n")
+fp = open(sys.argv[1], 'rU')
+last_pos = fp.tell()
+line = fp.readline()
+while line != '':
+  if line.startswith('Match'):
+    matches1.append(line)
+        line = next(f)
+        while not line.startswith('Match'):
+            matches1.append(line)
+            line = next(f)
+        matches = matches + (matches1,)
+        matches1= []
+    break
+  last_pos = fp.tell()
+  line = fp.readline()
