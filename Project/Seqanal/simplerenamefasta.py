@@ -11,7 +11,7 @@ with open(sys.argv[1], "rU") as fh:
         if line.startswith('>'):
             newline = re.search('OS=(.*)\s?\w*?=', line)
             #print newline.group(1)
-            out.write('>'+line[4:10]+'|'+newline.group(1)+'\n')
+            out.write('>'+line[4:10]+'|'+re.sub(' ', '_', newline.group(1))+'\n')
         else:
             out.write(line)
 
