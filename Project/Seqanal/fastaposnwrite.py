@@ -1,13 +1,10 @@
 __author__ = 'Kavin'
 
 import sys
-import re
 
 from Bio import SeqIO
 
-with open("outfile.txt","w") as f:
+with open("outRNAfastafile.txt","w") as f:
         for seq_record in SeqIO.parse(sys.argv[1], "fasta"):
-            org = re.search('\[(.*)\]', str(seq_record.description))
-            #print org.group(1)
-            f.write(">" + str(seq_record.description[:13]) + org.group(1) + "\n")
-            SeqIO.write(seq_record.seq, f, "fasta") # position -5 to -65
+                f.write(">" + str(seq_record.description[4:12]) + seq_record.description[43:81] + "\n")
+                f.write(str(seq_record.seq) + "\n\n")
