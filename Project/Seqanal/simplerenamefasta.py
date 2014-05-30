@@ -4,7 +4,10 @@ import sys
 import re
 
 
-out = open("newout.fasta", "w")
+
+fname = re.search('(.*)\.(\w*)', sys.argv[1])
+fname2 = str(fname.group(1))+'_processed.'+str(fname.group(2))
+out = open(fname2, "w")
 
 with open(sys.argv[1], "rU") as fh:
     for line in fh:
@@ -15,5 +18,6 @@ with open(sys.argv[1], "rU") as fh:
         else:
             out.write(line)
 
+out.close()
 
 

@@ -10,7 +10,10 @@ orgs = {}
 
 #print size
 
-outp =open("outputfile.fasta", "w")
+fname = re.search('(.*)\.(\w*)', sys.argv[1])
+fname2 = str(fname.group(1))+'_processed.'+str(fname.group(2))
+outp = open(fname2, "w")
+
 for i in range(0, size):
     if lines[i].startswith('>'):
       entry = re.search('OS=([A-Z]\w*\s\w*)\s', lines[i])
@@ -39,6 +42,7 @@ for i in range(0, size):
                     break
             i = i-1
 
+outp.close()
 
 #for key, value in sorted(orgs.iteritems(), key=lambda (k,v): (v,k)):
 #    print "%s: %s" % (key, value)
