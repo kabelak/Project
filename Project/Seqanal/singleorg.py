@@ -8,7 +8,7 @@ lines = fh.readlines()
 size = len(lines)
 orgs = {}
 
-print size
+#print size
 
 outp =open("outputfile.fasta", "w")
 for i in range(0, size):
@@ -16,9 +16,9 @@ for i in range(0, size):
       entry = re.search('OS=([A-Z]\w*\s\w*)\s', lines[i])
       if entry:
         org = entry.group(1)
-        print org
+        #print org
         if not orgs.has_key(org):
-            print org+' inside'
+            #print org+' inside'
             orgs[org] = 1
             outp.write(lines[i])
             i = i+1
@@ -40,9 +40,9 @@ for i in range(0, size):
             i = i-1
 
 
-for key, value in sorted(orgs.iteritems(), key=lambda (k,v): (v,k)):
-    print "%s: %s" % (key, value)
-
+#for key, value in sorted(orgs.iteritems(), key=lambda (k,v): (v,k)):
+#    print "%s: %s" % (key, value)
+#print len(orgs)
 '''
 for (key, value) in sorted(orgs.items(), ):
     print key
