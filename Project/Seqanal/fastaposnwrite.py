@@ -6,8 +6,8 @@ import re
 
 from Bio import SeqIO
 
-fname = re.search('(.*)\.\w*', sys.argv[1])
-fname2 = str(fname.group(1))+'_processed.txt'
+fname = re.search('(.*)\.(\w*)', sys.argv[1])
+fname2 = str(fname.group(1))+'_processed.'+str(fname.group(2))
 
 with open(fname2,"w") as f:
         for seq_record in SeqIO.parse(sys.argv[1], "fasta"):
