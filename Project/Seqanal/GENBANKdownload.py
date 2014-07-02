@@ -7,7 +7,7 @@ from Bio import Entrez
 organism_id = 'HE804045.1'
 
 # replace with your real email (optional):
-Entrez.email = 'whatever@mail.com'
+Entrez.email = 'kabela01@mail.bbk.ac.uk'
 # accession id works, returns genbank format, looks in the 'nucleotide' database:
 handle=Entrez.efetch(db='nucleotide',id=organism_id,rettype='gb')
 # store locally:
@@ -15,3 +15,15 @@ local_file=open(str(organism_id+'.gb'), 'w')
 local_file.write(handle.read())
 handle.close()
 local_file.close()
+
+'''
+
+def GenBankDownload(organism_id):
+    Entrez.email = 'kabela01@mail.bbk.ac.uk'
+    handle = Entrez.efetch(db='nucleotide',id=organism_id,rettype='gb')
+    local_file = open(str(organism_id+'.gb'), 'w')
+    local_file.write(handle.read())
+    handle.close()
+    local_file.close()
+
+'''
