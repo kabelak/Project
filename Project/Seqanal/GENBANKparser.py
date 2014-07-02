@@ -1,9 +1,9 @@
 __author__ = 'Kavin'
 
 from Bio import SeqIO
-gb_file = "CP000481.1.gb"
+gb_file = "CP003119.1.gb"
 gb_record = SeqIO.parse(open(gb_file, "r"), "genbank")
-mysnp = 203538
+mysnp = 2421243
 for record in gb_record:
     for feature in record.features:
         #print feature
@@ -16,11 +16,15 @@ for record in gb_record:
                 if location.strand == 1:
                     coding_start = location.start.position
                     coding_end = location.end.position
+                    print record.seq[coding_start:coding_end]
                 else:
                     coding_start = location.end.position
                     coding_end = location.start.position
+                    print record.seq[coding_end:coding_start]
+                    print 'Please note upstream sequence starts after the end of the sequence in this case'
                 print location.strand, coding_start, coding_end
-                print record.seq[coding_start:coding_end]
+
+
 
 
             '''
