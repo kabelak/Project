@@ -3,23 +3,24 @@ __author__ = 'Kavin'
 from Bio import SeqIO
 gb_file = "CP000481.1.gb"
 gb_record = SeqIO.parse(open(gb_file, "r"), "genbank")
-mysnp = 200538
+mysnp = 203538
 for record in gb_record:
     for feature in record.features:
         #print feature
-        #if mysnp in feature:
-        if feature.type == 'CDS':
-            if 'product' in feature.qualifiers:
-                print feature.qualifiers['product'][0]
-                #print("%s %s" % (feature.type, feature.qualifiers.get('product')))
-            location = feature.location
-            if location.strand == 1:
-                coding_start = location.start.position
-                coding_end = location.end.position
-            else:
-                coding_start = location.end.position
-                coding_end = location.start.position
-            print location.strand, coding_start, coding_end
+        if mysnp in feature:
+            if feature.type == 'CDS':
+                if 'product' in feature.qualifiers:
+                    print feature.qualifiers['product'][0]
+                    #print("%s %s" % (feature.type, feature.qualifiers.get('product')))
+                location = feature.location
+                if location.strand == 1:
+                    coding_start = location.start.position
+                    coding_end = location.end.position
+                else:
+                    coding_start = location.end.position
+                    coding_end = location.start.position
+                print location.strand, coding_start, coding_end
+                print record.seq[coding_start:coding_end]
 
 
             '''
