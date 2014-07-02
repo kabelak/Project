@@ -19,5 +19,3 @@ with open(sys.argv[1], "rU") as fh:
             out.write(line)
 
 out.close()
-
-
