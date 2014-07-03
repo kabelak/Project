@@ -26,7 +26,7 @@ def GenBankDownload(organism_id):
     time.sleep(2)   # Important to prevent DDoS type control from NCBI
 
 
-def GenBankParser(gbFile, start, frame, IRE=100):
+def GenBankParser(gbFile, start, frame, IRE=200):
     gb_record = SeqIO.parse(open(gbFile, "r"), "genbank")
     for record in gb_record:
         for feature in record.features:
@@ -89,7 +89,8 @@ with open(sys.argv[1], 'rU') as fh:
                         if not os.path.exists(str(gbID.group(1)+'.gb')):    # Check if GB file has previously been downloaded
                             GenBankDownload(gbID.group(1))
 
-                        product, gb_strand, ire_seq = GenBankParser(str(gbID.group(1)+'.gb'), hsp.sbjct_start, hsp.frame[1])
+                        product, gb_strand, ire_seq = GenBankParser(str(gbID.group(1) + '.gb'), hsp.sbjct_start,
+                                                                    hsp.frame[1], IRE=130)
                         print 'GenBank strand:', gb_strand
                         print 'Product:', product, '\n'
                         print 'Ire seq', ire_seq, 'asdasdasd'
