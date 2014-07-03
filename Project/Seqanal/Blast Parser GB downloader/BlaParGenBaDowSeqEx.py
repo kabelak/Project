@@ -28,6 +28,8 @@ def GenBankDownload(organism_id):
 
 def GenBankParser(gbFile, start, frame, IRE=200):
     #from Bio import SeqIO
+    if 'product' in locals():
+        print product
     gb_record = SeqIO.parse(open(gbFile, "r"), "genbank")
     for record in gb_record:
         for feature in record.features:
@@ -36,6 +38,7 @@ def GenBankParser(gbFile, start, frame, IRE=200):
                     if 'product' in feature.qualifiers:
                         #print 'Product:', feature.qualifiers['product'][0]
                         product = feature.qualifiers['product'][0]
+                        print product
                         #print("%s %s" % (feature.type, feature.qualifiers.get('product')))
                     location = feature.location
                     # TODO how to make sure it is checking in the right strand? At the moment, the 'start in feature' seems to find... but how?
@@ -63,7 +66,10 @@ def GenBankParser(gbFile, start, frame, IRE=200):
                         #coding_end = location.start.position
                     #print location.strand, coding_start, coding_end
                     #print record.seq[coding_start:coding_end]
-    return (product, location.strand, ire_sequence)
+    if 'product' in locals():
+        return (product, location.strand, ire_sequence)
+    else:
+        return ('NA', '0', 'NA')
 
 fname = re.search('(.*)\.(\w*)', sys.argv[1])
 fname2 = str(fname.group(1))+'_processed.txt'
@@ -75,7 +81,7 @@ with open(sys.argv[1], 'rU') as fh:
         for alignment in blast_record.alignments:
             for hsp in alignment.hsps:
                 identity = int((hsp.identities/hsp.align_length)*100)
-                if identity > 79:
+                if identity > 0:
                     if hsp.expect < 0.01:
                         print '****Alignment****'
                         gbID = re.search('gi\|.*\|.*\|(.*)\|', alignment.hit_id)
