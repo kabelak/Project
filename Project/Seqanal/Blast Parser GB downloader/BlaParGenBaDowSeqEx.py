@@ -56,7 +56,7 @@ def GenBankParser(gbFile, start, frame, IRE=200):
 
 
 fname = re.search('(.*)\.(\w*)', sys.argv[1])
-fname2 = str(fname.group(1))+'_processed2.txt'
+fname2 = str(fname.group(1)) + '_processed.txt'
 out = open(fname2, "w")
 
 with open(sys.argv[1], 'rU') as fh:
@@ -65,7 +65,7 @@ with open(sys.argv[1], 'rU') as fh:
         for alignment in blast_record.alignments:
             for hsp in alignment.hsps:
                 identity = int((hsp.identities/hsp.align_length)*100)
-                if identity > 80:
+                if identity > 0:
                     if hsp.expect < 0.01:
                         print '****Alignment****'
                         gbID = re.search('gi\|.*\|.*\|(.*)\|', alignment.hit_id)
@@ -91,7 +91,8 @@ with open(sys.argv[1], 'rU') as fh:
                         product, gb_strand, ire_seq = GenBankParser(str(gbID.group(1)+'.gb'), hsp.sbjct_start, hsp.frame[1])
                         print 'GenBank strand:', gb_strand
                         print 'Product:', product, '\n'
-                        if product != 'NA':
+                        print 'Ire seq', ire_seq, 'asdasdasd'
+                        if product != 'NA' and 'A' in ire_seq:  # Ensure only existing products and non-blank IRE sequences are passed on for writing to file
                             out.write('>' + str(gbID.group(1)[:-2]) + str(
                                 re.sub(' ', '_', alignment.hit_def[:35])) + ' Prod:' + str(
                                 product) + ' Str:' + str(hsp.frame[1]) + ' E=' + str(hsp.expect) + ' Iden:' + str(
