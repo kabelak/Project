@@ -37,7 +37,7 @@ def GenBankParser(gbFile, start, frame, IRE=200):
                     # TODO how to make sure it is checking in the right strand? At the moment, the 'start in feature' seems to find... but how?
                     if frame != location.strand:
                         print '!!!!!Strands do not match! The GBrecord strand is', location.strand, 'while the BLAST strand is', frame, '!!!!!!!!'
-                        product = str(product + 'DIFFERENT STRANDS')
+                        product = str(product + ' DIFFERENT STRANDS')
                     if location.strand == 1:
                         ire_start = location.start.position-IRE
                         ire_end = location.start.position
@@ -92,7 +92,8 @@ with open(sys.argv[1], 'rU') as fh:
                         print 'GenBank strand:', gb_strand
                         print 'Product:', product, '\n'
                         if product != 'NA':
-                            out.write('>' + str(re.sub(' ', '_', alignment.hit_def[:35])) + ' Prod:' + str(
+                            out.write('>' + str(gbID.group(1)[:-2]) + str(
+                                re.sub(' ', '_', alignment.hit_def[:35])) + ' Prod:' + str(
                                 product) + ' Str:' + str(hsp.frame[1]) + ' E=' + str(hsp.expect) + ' Iden:' + str(
                                 identity) + '%\n')
                             out.write(str(ire_seq) + '\n\n')
