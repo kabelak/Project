@@ -90,11 +90,11 @@ with open(sys.argv[1], 'rU') as fh:
                         product, gb_strand, ire_seq = GenBankParser(str(gbID.group(1)+'.gb'), hsp.sbjct_start, hsp.frame[1])
                         print 'GenBank strand:', gb_strand
                         print 'Product:', product, '\n'
-                        out.write('>'+str(re.sub(' ', '_', alignment.hit_def[:35]))+' Prod:'+str(product)+' Str:'+str(hsp.frame[1])+' E='+str(hsp.expect)+' Iden:'+str(identity)+'%\n')
-                        out.write(str(ire_seq)+'\n\n')
-
-
-
+                        if product != 'NA':
+                            out.write('>' + str(re.sub(' ', '_', alignment.hit_def[:35])) + ' Prod:' + str(
+                                product) + ' Str:' + str(hsp.frame[1]) + ' E=' + str(hsp.expect) + ' Iden:' + str(
+                                identity) + '%\n')
+                            out.write(str(ire_seq) + '\n\n')
 
 '''
 if gb_strand == hsp.frame[1]:
