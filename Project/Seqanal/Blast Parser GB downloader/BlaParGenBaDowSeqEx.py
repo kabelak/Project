@@ -10,12 +10,11 @@ from Bio import Entrez
 from Bio import SeqIO
 
 
-forward_IRE = {}
-reverse_IRE = {}
+#forward_IRE = {}
+#reverse_IRE = {}
 
 
 def GenBankDownload(organism_id):
-    #from Bio import Entrez
     print "Downloading GenBank file for", organism_id
     Entrez.email = 'kabela01@mail.bbk.ac.uk'
     handle = Entrez.efetch(db='nucleotide',id=organism_id,rettype='gb')
@@ -24,22 +23,16 @@ def GenBankDownload(organism_id):
     handle.close()
     local_file.close()
     print "Download completed"
-    time.sleep(2) #important to prevent DDoS type control from NCBI
+    time.sleep(2)   # Important to prevent DDoS type control from NCBI
 
 def GenBankParser(gbFile, start, frame, IRE=200):
-    #from Bio import SeqIO
-    if 'product' in locals():
-        print product
     gb_record = SeqIO.parse(open(gbFile, "r"), "genbank")
     for record in gb_record:
         for feature in record.features:
             if start in feature:
                 if feature.type == 'CDS':
                     if 'product' in feature.qualifiers:
-                        #print 'Product:', feature.qualifiers['product'][0]
                         product = feature.qualifiers['product'][0]
-                        print product
-                        #print("%s %s" % (feature.type, feature.qualifiers.get('product')))
                     location = feature.location
                     # TODO how to make sure it is checking in the right strand? At the moment, the 'start in feature' seems to find... but how?
                     if frame != location.strand:
@@ -47,32 +40,22 @@ def GenBankParser(gbFile, start, frame, IRE=200):
                     if location.strand == 1:
                         ire_start = location.start.position-IRE
                         ire_end = location.start.position
-                        #print ire_start
-                        #print ire_end
-                        #print 'Upstream Region:', record.seq[ire_start:ire_end]
                         ire_sequence = record.seq[ire_start:ire_end]
-                        #forward_IRE[feature.qualifiers['product'][0]] = record.seq[ire_start:ire_end]
-                        #coding_start = location.start.position
-                        #coding_end = location.end.position
                     else:
                         ire_start = location.end.position+IRE
                         ire_end = location.end.position
-                        #print ire_start
-                        #print ire_end
                         #print 'Reverse Strand; Upstream Region:', record.seq[ire_end:ire_start]
                         ire_sequence = record.seq[ire_end:ire_start]
-                        #reverse_IRE[feature.qualifiers['product'][0]] = record.seq[ire_end:ire_start]
-                        #coding_start = location.end.position
-                        #coding_end = location.start.position
-                    #print location.strand, coding_start, coding_end
-                    #print record.seq[coding_start:coding_end]
-    if 'product' in locals():
+                        ire_sequence = ire_sequence[::-1]   # Reverse the sequence
+    if 'product' in locals():   # Check existence of values before returning
         return (product, location.strand, ire_sequence)
     else:
         return ('NA', '0', 'NA')
 
+
+
 fname = re.search('(.*)\.(\w*)', sys.argv[1])
-fname2 = str(fname.group(1))+'_processed.txt'
+fname2 = str(fname.group(1))+'_processed2.txt'
 out = open(fname2, "w")
 
 with open(sys.argv[1], 'rU') as fh:
@@ -81,7 +64,7 @@ with open(sys.argv[1], 'rU') as fh:
         for alignment in blast_record.alignments:
             for hsp in alignment.hsps:
                 identity = int((hsp.identities/hsp.align_length)*100)
-                if identity > 0:
+                if identity > 80:
                     if hsp.expect < 0.01:
                         print '****Alignment****'
                         gbID = re.search('gi\|.*\|.*\|(.*)\|', alignment.hit_id)
@@ -101,8 +84,9 @@ with open(sys.argv[1], 'rU') as fh:
                         #print hsp.match[:50] + '...'
                         #print hsp.sbjct[:50] + '...'
 
-                        if not os.path.exists(str(gbID.group(1)+'.gb')):
+                        if not os.path.exists(str(gbID.group(1)+'.gb')):    # Check if GB file has previously been downloaded
                             GenBankDownload(gbID.group(1))
+
                         product, gb_strand, ire_seq = GenBankParser(str(gbID.group(1)+'.gb'), hsp.sbjct_start, hsp.frame[1])
                         print 'GenBank strand:', gb_strand
                         print 'Product:', product, '\n'
@@ -112,26 +96,13 @@ with open(sys.argv[1], 'rU') as fh:
 
 
 
-                    '''
-                    if gb_strand == hsp.frame[1]:
-                         product
-                    print ire_seq
-                    print '\n\n'
-
-
-fname = re.search('(.*)\.(\w*)', sys.argv[1])
-fname2 = str(fname.group(1))+'_processed.txt'
-out = open(fname2, "w")
+'''
+if gb_strand == hsp.frame[1]:
+     product
+print ire_seq
+print '\n\n'
 
 out.write('Plus strand matches\n')
 for key, value in reverse_IRE.items():
     out.write(str(key)+':'+str(value)+'\n')
-
-
-TODO
-
-# Make
-
-
-
 '''
