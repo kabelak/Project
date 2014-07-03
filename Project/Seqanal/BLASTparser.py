@@ -6,8 +6,8 @@ import re
 from Bio.Blast import NCBIXML
 
 
-fname = re.search('(.*)\.(\w*)', sys.argv[1])
-fname2 = str(fname.group(1))+'_processed.'+str(fname.group(2))
+#fname = re.search('(.*)\.(\w*)', sys.argv[1])
+#fname2 = str(fname.group(1))+'_processed.'+str(fname.group(2))
 #out = open(fname2, "w")
 
 with open(sys.argv[1], 'rU') as fh:
@@ -22,31 +22,16 @@ with open(sys.argv[1], 'rU') as fh:
                 gbID = re.search('gi\|.*\|.*\|(.*)\|', alignment.hit_id)
                 print 'Hit ID:', gbID.group(1)
                 print 'Hit def:', alignment.hit_def
-                print 'hit start:', hsp.sbjct_start
-                print 'hit end:', hsp.sbjct_end
-                print 'query start:', hsp.query_start
-                print 'query end:', hsp.query_end
-                print 'query strand:', hsp.frame[0]
-                print 'hit strand:', hsp.frame[1]
-                print 'e value:', float(hsp.expect)
-                print 'identities:', hsp.identities
-                print 'align length:', hsp.align_length
+                print 'Hit start:', hsp.sbjct_start
+                print 'Hit end:', hsp.sbjct_end
+                print 'Query start:', hsp.query_start
+                print 'Query end:', hsp.query_end
+                print 'Query strand:', hsp.frame[0]
+                print 'Hit strand:', hsp.frame[1]
+                print 'E-value:', float(hsp.expect)
+                print 'Identities:', hsp.identities
+                print 'Alignment length:', hsp.align_length
                 print 'Identity:', int((hsp.identities/hsp.align_length)*100), '%'
                 print hsp.query[:50] + '...'
                 print hsp.match[:50] + '...'
                 print hsp.sbjct[:50] + '...'
-
-
-
-
-
-
-
-
-
-
-
-
-'''
-   blast_record = next(blast_records)
-'''
