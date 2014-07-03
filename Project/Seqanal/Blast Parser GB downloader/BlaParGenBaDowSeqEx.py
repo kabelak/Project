@@ -25,7 +25,8 @@ def GenBankDownload(organism_id):
     print "Download completed"
     time.sleep(2)   # Important to prevent DDoS type control from NCBI
 
-def GenBankParser(gbFile, start, frame, IRE=200):
+
+def GenBankParser(gbFile, start, frame, IRE=100):
     gb_record = SeqIO.parse(open(gbFile, "r"), "genbank")
     for record in gb_record:
         for feature in record.features:
@@ -104,6 +105,9 @@ if gb_strand == hsp.frame[1]:
      product
 print ire_seq
 print '\n\n'
+
+#ire_seq = textwrap.TextWrapper(width=60)
+#ire_seq_wrapped = '\n'.join(ire_seq.wrap(ire_seq_wrapped))
 
 out.write('Plus strand matches\n')
 for key, value in reverse_IRE.items():
