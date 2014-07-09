@@ -1,6 +1,6 @@
 __author__ = 'Kavin'
 
-########################################################################################################
+# #######################################################################################################
 # Script to match entries within a Spire output and TSS/Startcodon entries within an Excel Spreadsheet #
 # Usage:                                                                                               #
 #   python extractmatch2.py [Spire Output File] [Excel Sheet]                                          #
@@ -20,23 +20,23 @@ matches = {}
 # For each entry within Spire output (ie, each match), create a temp dict 'matches1' with all the charateristics, then
 # create a glocal dict key for the entry with the characteristics as a value (ie, dict of dicts)
 with open(sys.argv[1], 'rU') as f:
-  for line in f:
-    if line.startswith('Match'):
-        line = re.sub('\n', '', line)
-        entry = line
-        line = next(f)
-        while not line.startswith('None'):
-            line = re.sub('\n|\t', '', line)
-            characteristic = re.search('(.*):\s(.*)', line)
-            # Re match before : match after
-            # matches1[group1] = group 2
-            #matches1.append(line) ## delete this
-            matches1[characteristic.group(1)] = characteristic.group(2)
+    for line in f:
+        if line.startswith('Match'):
+            line = re.sub('\n', '', line)
+            entry = line
             line = next(f)
-        matches[entry] = matches1
-        matches1= {}
+            while not line.startswith('None'):
+                line = re.sub('\n|\t', '', line)
+                characteristic = re.search('(.*):\s(.*)', line)
+                # Re match before : match after
+                # matches1[group1] = group 2
+                #matches1.append(line) ## delete this
+                matches1[characteristic.group(1)] = characteristic.group(2)
+                line = next(f)
+            matches[entry] = matches1
+            matches1 = {}
 
-
+"""Needs to consider the strand as well"""
 
 #### Import data from Excel workbook/sheet
 #workbook = xlrd.open_workbook("F:\Google Drive\Birkbeck\Project\RNAseq\Cortes sup mat\mmc3TSSvsStartCodon.xlsx")
