@@ -6,7 +6,7 @@ import sys
 import re
 import time
 import os
-from optparse import OptionParser
+import argparse
 from Bio.Blast import NCBIXML
 from Bio import Entrez
 from Bio import SeqIO
@@ -70,34 +70,55 @@ def GenBankParser(gbFile, start, frame, IRE=200,
         return ('NA', '0', 'NA')
 
 
+def check_range(arg):
+    try:
+        value = int(arg)
+    except ValueError as err:
+        raise argparse.ArgumentTypeError(str(err))
+
+    if value < 20 or value > 300:
+        message = "Expected length between 20 and 300 inclusive, received value = {}".format(value)
+        raise argparse.ArgumentTypeError(message)
+
+    return value
+
+
 def main(argv):
     """Blast Parser, GenBank File Downloaded, IRE Sequence Extractor"""
-    usage = "Usage: %prog [options] <Blast XML file>"
-    parser = OptionParser(usage=usage, version="%prog 0.0.1")  # TODO change to argparse()
-    parser.add_option("-u", "--upstream", dest="upstream",
-                      action="store_true", default=False,
-                      help="Extracts sequence upstream of coding sequence")
+    parser = argparse.ArgumentParser(description='Blast Parser, GenBank File Downloaded, IRE Sequence Extractor',
+                                     usage="[optional upstream] [length of sequence] <Blast XML file>")
+    # parser.add_argument('integers', metavar='N', type=int, nargs='+',
+    #                    help='an integer for the accumulator')
+    #parser.add_argument('--sum', dest='accumulate', action='store_const',
+    #                    const=sum, default=max,
+    #                    help='sum the integers (default: find the max)')
+    parser.add_argument('-u', '--upstream', action='store_true', default=False,
+                        help='Defines whether to look upstream; Default looks downstream')
+    parser.add_argument('IRE_len', type=check_range,
+                        help='Define the length of sequence to pull (i.e.: UTR length between 20 and 300 bases)',
+                        default=200, nargs=1)
+    parser.add_argument('file', help='BLAST XML file')
+    args = parser.parse_args()
 
-    opts, args = parser.parse_args()
-    if len(args) < 1:
+    upstream_value = False
+    if args.upstream:
+        upstream_value = True
+
+    if not args.file:
         parser.error("Please specify a BLAST XML file")
 
-    fname = re.search('(.*)\.(\w*)', args[0])
+    fname = re.search('(.*)\.(\w*)', args.file)
     fname2 = str(fname.group(1)) + '_extracted.txt'
     out = open(fname2, "w")
 
-    upstream_value = False
-    if opts.upstream:
-        upstream_value = True
-
     i = 0
-    with open(args[0], 'rU') as blastxml:
+    with open(args.file, 'rU') as blastxml:
         blast_records = NCBIXML.parse(blastxml)
         for blast_record in blast_records:
             for alignment in blast_record.alignments:
                 for hsp in alignment.hsps:
                     identity = int((hsp.identities / hsp.align_length) * 100)
-                    if identity > 77:
+                    if identity > 81:
                         if hsp.expect < 0.01:
                             print '****Alignment****'
                             gbID = re.search('gi\|.*\|.*\|(.*)\|', alignment.hit_id)
@@ -123,7 +144,8 @@ def main(argv):
                                 i += 1  # Count the number of downloaded files
 
                             product, gb_strand, ire_seq = GenBankParser(str(gbID.group(1) + '.gb'), hsp.sbjct_start,
-                                                                        hsp.frame[1], IRE=130, Upstream=upstream_value)
+                                                                        hsp.frame[1], IRE=args.IRE_len[0],
+                                                                        Upstream=upstream_value)
                             print 'GenBank strand:', gb_strand
                             print 'Product:', product, '\n'
                             print 'IRE Seq:', ire_seq, '\n'
