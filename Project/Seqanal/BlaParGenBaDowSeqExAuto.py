@@ -29,7 +29,7 @@ def GenBankDownload(organism_id):
 
 
 def GenBankParser(gbFile, start, frame, IRE=200,
-                  Upstream=True):  # TODO modify to include downstream IREs as well - maybe a function option?
+                  Upstream=True):
     gb_record = SeqIO.parse(open(gbFile, "r"), "genbank")
     for record in gb_record:
         for feature in record.features:
@@ -73,7 +73,7 @@ def GenBankParser(gbFile, start, frame, IRE=200,
 def main(argv):
     """Blast Parser, GenBank File Downloaded, IRE Sequence Extractor"""
     usage = "Usage: %prog [options] <Blast XML file>"
-    parser = OptionParser(usage=usage, version="%prog 0.0.1")
+    parser = OptionParser(usage=usage, version="%prog 0.0.1")  # TODO change to argparse()
     parser.add_option("-u", "--upstream", dest="upstream",
                       action="store_true", default=False,
                       help="Extracts sequence upstream of coding sequence")
