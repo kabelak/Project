@@ -12,10 +12,6 @@ from Bio import Entrez
 from Bio import SeqIO
 
 
-# forward_IRE = {}
-#reverse_IRE = {}
-
-
 def GenBankDownload(organism_id):
     print "Downloading GenBank file for", organism_id
     Entrez.email = 'kabela01@mail.bbk.ac.uk'
@@ -87,11 +83,6 @@ def main(argv):
     """Blast Parser, GenBank File Downloaded, IRE Sequence Extractor"""
     parser = argparse.ArgumentParser(description='Blast Parser, GenBank File Downloaded, IRE Sequence Extractor',
                                      usage="[optional upstream] [length of sequence] <Blast XML file>")
-    # parser.add_argument('integers', metavar='N', type=int, nargs='+',
-    #                    help='an integer for the accumulator')
-    #parser.add_argument('--sum', dest='accumulate', action='store_const',
-    #                    const=sum, default=max,
-    #                    help='sum the integers (default: find the max)')
     parser.add_argument('-u', '--upstream', action='store_true', default=False,
                         help='Defines whether to look upstream; Default looks downstream')
     parser.add_argument('IRE_len', type=check_range,
@@ -118,7 +109,7 @@ def main(argv):
             for alignment in blast_record.alignments:
                 for hsp in alignment.hsps:
                     identity = int((hsp.identities / hsp.align_length) * 100)
-                    if identity > 81:
+                    if identity > 0:
                         if hsp.expect < 0.01:
                             print '****Alignment****'
                             gbID = re.search('gi\|.*\|.*\|(.*)\|', alignment.hit_id)
