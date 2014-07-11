@@ -38,7 +38,7 @@ with open(sys.argv[1], 'rU') as f:
             spire_entries[entry] = spire_entry
             spire_entry = {}
 '''
-for key, value in matches.items():
+for key, value in spire_entries.items():
     if value['Folds to'] == '     .(((((.....)))))':
         print key, '\n'
         print value['URL'], '\n'
@@ -84,6 +84,8 @@ for key, value in TSS.items():
 # For each gene within the Excel sheet, iterate through entries within Spire output to find a match
 # with SeqIO.parse(open("mtbtomod.gb", "r"), "genbank") as gbfile:
 
+matches = {}
+
 for UTR, area in TSS.items():
     for key, value in spire_entries.items():
         position = re.search('\((\d*):(\d*)', key)
@@ -94,14 +96,18 @@ for UTR, area in TSS.items():
                     'Direction']
             else:
                 if value['Direction'] == '+':
-                    if area['TSS'] <= position.group(1) and int(area['StartCodon']) >= int(position.group(2)):
-                        print UTR, gene.group(1)
-                        print value['Sequence'], ' is contained within the UTR on the ', value['Direction']
+                    if int(area['TSS']) <= int(position.group(1)) and int(area['StartCodon']) >= int(position.group(2)):
+                        matches[UTR] = {'UTRStart': int(area['TSS']), 'UTRStop': int(area['StartCodon'])}
+                        # print UTR, gene.group(1)
+                        #print value['Sequence'], ' is contained within the UTR on the ', value['Direction']
                 if value['Direction'] == '-':
                     if int(area['TSS']) >= int(position.group(2)) and int(area['StartCodon']) <= int(position.group(1)):
-                        print UTR, gene.group(1)
-                        print value['Sequence'], ' is contained within the UTR on the ', value['Direction']
+                        matches[UTR] = {'UTRStart': int(area['StartCodon']), 'UTRStop': int(area['TSS'])}
+                        # print UTR, gene.group(1)
+                        #print value['Sequence'], ' is contained within the UTR on the ', value['Direction']
 
+for key, value in matches.items():
+    print key, ' ', value
 
 '''
                 #print 'Eureka! Rv number matches found!'
