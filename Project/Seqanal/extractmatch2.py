@@ -15,8 +15,8 @@ from Bio import SeqIO
 
 #### Import data from Spire output file
 # Create dicts to score Spire output data
-matches1 = {}
-matches = {}
+spire_entry = {}
+spire_entries = {}
 
 # For each entry within Spire output (ie, each match), create a temp dict 'matches1' with all the charateristics, then
 # create a glocal dict key for the entry with the characteristics as a value (ie, dict of dicts)
@@ -29,14 +29,14 @@ with open(sys.argv[1], 'rU') as f:
             while not line.startswith('None'):
                 line = re.sub('\n|\t', '', line)
                 characteristic = re.search('(.*):\s(.*)', line)
-                matches1[characteristic.group(1)] = characteristic.group(2)
-            line = next(f)
-            if matches1['Direction'] == 'forward':
-                matches1['Direction'] = '+'
+                spire_entry[characteristic.group(1)] = characteristic.group(2)
+                line = next(f)
+            if spire_entry['Direction'] == 'forward':
+                spire_entry['Direction'] = '+'
             else:
-                matches1['Direction'] = '-'
-            matches[entry] = matches1
-            matches1 = {}
+                spire_entry['Direction'] = '-'
+            spire_entries[entry] = spire_entry
+            spire_entry = {}
 '''
 for key, value in matches.items():
     if value['Folds to'] == '     .(((((.....)))))':
@@ -85,7 +85,7 @@ for key, value in TSS.items():
 # with SeqIO.parse(open("mtbtomod.gb", "r"), "genbank") as gbfile:
 
 for UTR, area in TSS.items():
-    for key, value in matches.items():
+    for key, value in spire_entries.items():
         position = re.search('\((\d*):(\d*)', key)
         gene = re.search('term=(\w*)', value['URL'])
         if UTR == gene.group(1):
