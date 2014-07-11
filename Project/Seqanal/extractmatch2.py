@@ -11,6 +11,7 @@ __author__ = 'Kavin'
 import re
 import sys
 import xlrd
+from Bio import SeqIO
 
 #### Import data from Spire output file
 # Create dicts to score Spire output data
@@ -28,19 +29,23 @@ with open(sys.argv[1], 'rU') as f:
             while not line.startswith('None'):
                 line = re.sub('\n|\t', '', line)
                 characteristic = re.search('(.*):\s(.*)', line)
-                # Re match before : match after
-                # matches1[group1] = group 2
-                #matches1.append(line) ## delete this
                 matches1[characteristic.group(1)] = characteristic.group(2)
-                line = next(f)
+            line = next(f)
+            if matches1['Direction'] == 'forward':
+                matches1['Direction'] = '+'
+            else:
+                matches1['Direction'] = '-'
             matches[entry] = matches1
             matches1 = {}
-
-"""Needs to consider the strand as well"""
-
+'''
+for key, value in matches.items():
+    if value['Folds to'] == '     .(((((.....)))))':
+        print key, '\n'
+        print value['URL'], '\n'
+'''
 #### Import data from Excel workbook/sheet
-#workbook = xlrd.open_workbook("F:\Google Drive\Birkbeck\Project\RNAseq\Cortes sup mat\mmc3TSSvsStartCodon.xlsx")
-workbook = xlrd.open_workbook(sys.argv[2])
+workbook = xlrd.open_workbook("F:\Google Drive\Birkbeck\Project\RNAseq\Cortes sup mat\mmc3TSSvsStartCodon.xlsx")
+# workbook = xlrd.open_workbook(sys.argv[2])
 sheet = workbook.sheet_by_index(0)
 data = [[sheet.cell_value(r, c) for c in range(sheet.ncols)] for r in range(sheet.nrows)]
 
@@ -50,35 +55,64 @@ row = {}
 
 # For each entry (row), store the startcodon and TSS as key/values within the value of a global dict
 # with gene name as key
-for i in range(2, 15):
+for i in range(2, sheet.nrows - 1):
     # print i
+    while data[i][6] == '' and data[i][9] == '':
+        i += 1
     Gene = data[i][0]
+    row['Direction'] = str(data[i][3])
     # print Gene
-    row['StartCodon'] = data[i][4]
-    if data[i][6] == '':
-        # If empty as well, go to next iteration
-        row['TSS'] = data[i][9]
+    if data[i][5] < -0.7:
+        row['StartCodon'] = int(data[i][4])
     else:
-        row['TSS'] = data[i][6]
+        row['StartCodon'] = int(data[i][2])
+    if data[i][6] == '':
+        # If empty, go to next iteration, ie internal TSS
+        row['TSS'] = int(data[i][9])
+    else:
+        row['TSS'] = int(data[i][6])
     TSS[Gene] = row
     row = {}
 
+'''
+for key, value in TSS.items():
+    print key, '\n'
+    print value, '\n'
 
+'''
 #### Find intersection
 # For each gene within the Excel sheet, iterate through entries within Spire output to find a match
+# with SeqIO.parse(open("mtbtomod.gb", "r"), "genbank") as gbfile:
+
 for UTR, area in TSS.items():
     for key, value in matches.items():
         position = re.search('\((\d*):(\d*)', key)
         gene = re.search('term=(\w*)', value['URL'])
         if UTR == gene.group(1):
-            print 'Eureka! Rv number matches found!'
-            print UTR, gene.group(1)
-            print value['Sequence'], 'starts at ', position.group(1), ' and ends at ', position.group(2)
-            print "Untrans Region starts at", area['TSS'], 'and ends at', area['StartCodon']
+            if value['Direction'] != area['Direction']:
+                print 'There is a problem in the strand direction matches...', value['Direction'], ' and ', area[
+                    'Direction']
+            else:
+                if value['Direction'] == '+':
+                    if area['TSS'] <= position.group(1) and int(area['StartCodon']) >= int(position.group(2)):
+                        print UTR, gene.group(1)
+                        print value['Sequence'], ' is contained within the UTR on the ', value['Direction']
+                if value['Direction'] == '-':
+                    if int(area['TSS']) >= int(position.group(2)) and int(area['StartCodon']) <= int(position.group(1)):
+                        print UTR, gene.group(1)
+                        print value['Sequence'], ' is contained within the UTR on the ', value['Direction']
+
+
+'''
+                #print 'Eureka! Rv number matches found!'
+                print UTR, gene.group(1)
+                print value['Sequence'], 'starts at ', position.group(1), ' and ends at ', position.group(2), ' on strand ', area['Direction']
+                print "Untrans Region starts at", area['TSS'], 'and ends at', area['StartCodon'], ' on strand ', area['Direction']
 
             #print key, value['Direction']
 
-'''
+
+
 for key, value in matches.items():
     position = re.search('\((\d*):(\d*)', key)
     gene = re.search('term=(\w*)', value['URL'])
