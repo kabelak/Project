@@ -46,9 +46,7 @@ def GenBankParser(gbFile, start, frame, IRE=200,
                         else:
                             ire_start = location.end.position + IRE
                             ire_end = location.end.position
-                            #print 'Reverse Strand; Upstream Region:', record.seq[ire_end:ire_start]
-                            ire_sequence = record.seq[ire_end:ire_start]
-                            ire_sequence = ire_sequence[::-1]  # Reverse the sequence
+                            ire_sequence = record.seq[ire_end:ire_start].reverse_complement()  # Reverse the sequence
                     else:
                         if location.strand == 1:
                             ire_start = location.end.position
@@ -57,25 +55,22 @@ def GenBankParser(gbFile, start, frame, IRE=200,
                         else:
                             ire_start = location.start.position
                             ire_end = location.start.position - IRE
-                            #print 'Reverse Strand; Upstream Region:', record.seq[ire_end:ire_start]
-                            ire_sequence = record.seq[ire_end:ire_start]
-                            ire_sequence = ire_sequence[::-1]  # Reverse the sequence
+                            ire_sequence = record.seq[ire_end:ire_start].reverse_complement()  # Reverse the sequence
+
     if 'product' in locals():  # Check existence of values before returning
         return (product, location.strand, ire_sequence)
     else:
         return ('NA', '0', 'NA')
 
 
-def check_range(arg):
+def check_range(arg):  # Function to ensure correct range of IRE Length is input at the command prompt
     try:
         value = int(arg)
     except ValueError as err:
         raise argparse.ArgumentTypeError(str(err))
-
     if value < 20 or value > 300:
         message = "Expected length between 20 and 300 inclusive, received value = {}".format(value)
         raise argparse.ArgumentTypeError(message)
-
     return value
 
 
@@ -129,18 +124,21 @@ def main(argv):
                             #print hsp.match[:50] + '...'
                             #print hsp.sbjct[:50] + '...'
 
-                            if not os.path.exists(
-                                    str(gbID.group(1) + '.gb')):  # Check if GB file has previously been downloaded
+                            # Check if GB file has previously been downloaded
+                            if not os.path.exists(str(gbID.group(1) + '.gb')):
                                 GenBankDownload(gbID.group(1))
                                 i += 1  # Count the number of downloaded files
 
+                            # Parse GB file for required information
                             product, gb_strand, ire_seq = GenBankParser(str(gbID.group(1) + '.gb'), hsp.sbjct_start,
                                                                         hsp.frame[1], IRE=args.IRE_len[0],
                                                                         Upstream=upstream_value)
                             print 'GenBank strand:', gb_strand
                             print 'Product:', product, '\n'
                             print 'IRE Seq:', ire_seq, '\n'
-                            if product != 'NA' and 'A' in ire_seq:  # Ensure only existing products and non-blank IRE sequences are passed on for writing to file
+
+                            # Ensure only existing products and non-blank IRE sequences are passed on for writing to file
+                            if product != 'NA' and ('A' or 'C' or 'G' or 'T' or 'U') in ire_seq:
                                 out.write('>' + str(gbID.group(1)[:-2]) + str(
                                     re.sub(' ', '_', alignment.hit_def[:35])) + ' Prod:' + str(
                                     product) + ' Str:' + str(hsp.frame[1]) + ' E=' + str(hsp.expect) + ' Iden:' + str(
