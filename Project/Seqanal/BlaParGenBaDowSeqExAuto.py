@@ -96,6 +96,7 @@ def main(argv):
     if not args.file:
         parser.error("Please specify a BLAST XML file")
 
+    # Create output file
     fname = re.search('(.*)\.(\w*)', args.file)
     fname2 = str(fname.group(1)) + '_extracted.txt'
     out = open(fname2, "w")
@@ -137,7 +138,7 @@ def main(argv):
                                                                         hsp.frame[1], IRE=args.IRE_len[0],
                                                                         Upstream=upstream_value)
                             print 'GenBank strand:', gb_strand
-                            print 'Product:', product, '\n'
+                            print 'Product:', product
                             print 'IRE Seq:', ire_seq, '\n'
 
                             # Ensure only existing products and non-blank IRE sequences are passed on for writing to file
@@ -148,7 +149,10 @@ def main(argv):
                                     identity) + '%\n')
                                 out.write(str(ire_seq) + '\n\n')
 
-    print """\n\n************************************************\nNumber of files downloaded: %s \n************************************************""" % i
+    # Housekeeping and displaying if any files downloaded
+    out.close()
+    if i > 0:
+        print """\n\n************************************************\nNumber of files downloaded: %s \n************************************************""" % i
 
 
 if __name__ == "__main__":
