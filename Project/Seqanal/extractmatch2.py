@@ -128,8 +128,18 @@ for record in gb_file:
             value['Sequence'] = record.seq[value['IREStart'] - 10:value['IREStop'] + 10]
             print key, value['Sequence']
         if value['Direction'] == '-':
-            value['Sequence'] = record.seq[value['IREStop'] - 10:value['IREStart'] + 10]
+            ire_sequence = record.seq[value['IREStop'] - 10:value['IREStart'] + 10]
+            ire_sequence = ire_sequence[::-1]
+            value['Sequence'] = ire_sequence
             print 'minus', key, value['Sequence']
+
+fname = re.search('(.*)\.(\w*)', sys.argv[1])
+fname2 = str(fname.group(1)) + '_seqExtract.' + str(fname.group(2))
+with open(fname2, "w") as out:
+    for key, value in matches.items():
+        out.write('>' + str(key) + '\n' + str(value['Sequence']) + '\n\n')
+
+
 
 
 
