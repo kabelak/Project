@@ -26,41 +26,44 @@ def GenBankDownload(organism_id):
 
 def GenBankParser(gbFile, start, frame, IRE=200,
                   Upstream=True):
-    gb_record = SeqIO.parse(open(gbFile, "r"), "genbank")
-    for record in gb_record:
-        for feature in record.features:
-            if start in feature:
-                if feature.type == 'CDS':
-                    if 'product' in feature.qualifiers:
-                        product = feature.qualifiers['product'][0]
-                    location = feature.location
-                    # TODO how to make sure it is checking in the right strand? At the moment, the 'start in feature' seems to find... but how?
-                    if frame != location.strand:
-                        print '!!!!!Strands do not match! The GBrecord strand is', location.strand, 'while the BLAST strand is', frame, '!!!!!!!!'
-                        product = str(product + ' DIFFERENT STRANDS')
-                    if Upstream:
-                        if location.strand == 1:
-                            ire_start = location.start.position - IRE
-                            ire_end = location.start.position
-                            ire_sequence = record.seq[ire_start:ire_end]
+    with open(gbFile, "r") as gbFile_handle:
+        gb_record = SeqIO.parse(gbFile_handle, "genbank")
+        for record in gb_record:
+            for feature in record.features:
+                if start in feature:
+                    if feature.type == 'CDS':
+                        if 'product' in feature.qualifiers:
+                            product = feature.qualifiers['product'][0]
+                        location = feature.location
+                        # TODO how to make sure it is checking in the right strand? At the moment, the 'start in feature' seems to find... but how?
+                        if frame != location.strand:
+                            print '!!!!!Strands do not match! The GBrecord strand is', location.strand, 'while the BLAST strand is', frame, '!!!!!!!!'
+                            product = str(product + ' DIFFERENT STRANDS')
+                        if Upstream:
+                            if location.strand == 1:
+                                ire_start = location.start.position - IRE
+                                ire_end = location.start.position
+                                ire_sequence = record.seq[ire_start:ire_end]
+                            else:
+                                ire_start = location.end.position + IRE
+                                ire_end = location.end.position
+                                ire_sequence = record.seq[
+                                               ire_end:ire_start].reverse_complement()  # Reverse the sequence
                         else:
-                            ire_start = location.end.position + IRE
-                            ire_end = location.end.position
-                            ire_sequence = record.seq[ire_end:ire_start].reverse_complement()  # Reverse the sequence
-                    else:
-                        if location.strand == 1:
-                            ire_start = location.end.position
-                            ire_end = location.end.position + IRE
-                            ire_sequence = record.seq[ire_start:ire_end]
-                        else:
-                            ire_start = location.start.position
-                            ire_end = location.start.position - IRE
-                            ire_sequence = record.seq[ire_end:ire_start].reverse_complement()  # Reverse the sequence
+                            if location.strand == 1:
+                                ire_start = location.end.position
+                                ire_end = location.end.position + IRE
+                                ire_sequence = record.seq[ire_start:ire_end]
+                            else:
+                                ire_start = location.start.position
+                                ire_end = location.start.position - IRE
+                                ire_sequence = record.seq[
+                                               ire_end:ire_start].reverse_complement()  # Reverse the sequence
 
-    if 'product' in locals():  # Check existence of values before returning
-        return (product, location.strand, ire_sequence)
-    else:
-        return ('NA', '0', 'NA')
+        if 'product' in locals():  # Check existence of values before returning
+            return (product, location.strand, ire_sequence)
+        else:
+            return ('NA', '0', 'NA')
 
 
 def check_range(arg):  # Function to ensure correct range of IRE Length is input at the command prompt
