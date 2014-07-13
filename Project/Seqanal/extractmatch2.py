@@ -12,6 +12,14 @@ import re
 import sys
 import xlrd
 from Bio import SeqIO
+import sys
+import re
+import time
+import os
+import argparse
+from Bio.Blast import NCBIXML
+from Bio import Entrez
+from Bio import SeqIO
 
 #### Import data from Spire output file
 # Create dicts to score Spire output data
@@ -97,17 +105,33 @@ for UTR, area in TSS.items():
             else:
                 if value['Direction'] == '+':
                     if int(area['TSS']) <= int(position.group(1)) and int(area['StartCodon']) >= int(position.group(2)):
-                        matches[UTR] = {'UTRStart': int(area['TSS']), 'UTRStop': int(area['StartCodon'])}
+                        matches[UTR] = {'UTRStart': int(area['TSS']), 'UTRStop': int(area['StartCodon']),
+                                        'IREStart': int(position.group(1)), 'IREStop': int(position.group(2)),
+                                        'Direction': value['Direction']}
                         # print UTR, gene.group(1)
                         #print value['Sequence'], ' is contained within the UTR on the ', value['Direction']
                 if value['Direction'] == '-':
                     if int(area['TSS']) >= int(position.group(2)) and int(area['StartCodon']) <= int(position.group(1)):
-                        matches[UTR] = {'UTRStart': int(area['StartCodon']), 'UTRStop': int(area['TSS'])}
+                        matches[UTR] = {'UTRStart': int(area['StartCodon']), 'UTRStop': int(area['TSS']),
+                                        'IREStart': int(position.group(2)), 'IREStop': int(position.group(1)),
+                                        'Direction': value['Direction']}
                         # print UTR, gene.group(1)
                         #print value['Sequence'], ' is contained within the UTR on the ', value['Direction']
 
-for key, value in matches.items():
-    print key, ' ', value
+# for key, value in matches.items():
+#    print key, ' ', value['UTRStart']
+
+gb_file = SeqIO.parse(open("mtbtomod.gb", "r"), "genbank")
+for record in gb_file:
+    for key, value in matches.items():
+        if value['Direction'] == '+':
+            value['Sequence'] = record.seq[value['IREStart'] - 10:value['IREStop'] + 10]
+            print key, value['Sequence']
+        if value['Direction'] == '-':
+            value['Sequence'] = record.seq[value['IREStop'] - 10:value['IREStart'] + 10]
+            print 'minus', key, value['Sequence']
+
+
 
 '''
                 #print 'Eureka! Rv number matches found!'
