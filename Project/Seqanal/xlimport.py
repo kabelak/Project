@@ -12,7 +12,7 @@ data = [[sheet.cell_value(r, c) for c in range(sheet.ncols)] for r in range(shee
 TSS = {}
 row = {}
 
-for i in range(2, 15): #sheet.nrows
+for i in range(2, sheet.nrows - 1):  # sheet.nrows
     print i
     Gene = data[i][0]
     print Gene
