@@ -10,18 +10,15 @@ import argparse
 from Bio.Blast import NCBIXML
 from Bio import Entrez
 from Bio import SeqIO
-
+# from GENBANKdownload import GenBankDownload
 
 def GenBankDownload(organism_id):
-    print "Downloading GenBank file for", organism_id
     Entrez.email = 'kabela01@mail.bbk.ac.uk'
     handle = Entrez.efetch(db='nucleotide', id=organism_id, rettype='gb')
     local_file = open(str(organism_id + '.gb'), 'w')
     local_file.write(handle.read())
     handle.close()
     local_file.close()
-    print "Download completed"
-    time.sleep(2)  # Important to prevent DDoS type control from NCBI
 
 
 def GenBankParser(gbFile, start, frame, IRE=200,
@@ -128,9 +125,12 @@ def main(argv):
                             #print hsp.match[:50] + '...'
                             #print hsp.sbjct[:50] + '...'
 
-                            # Check if GB file has previously been downloaded
+                            # Download GB file if not previously downloaded
                             if not os.path.exists(str(gbID.group(1) + '.gb')):
+                                print "Downloading GenBank file for", gbID.group(1)
                                 GenBankDownload(gbID.group(1))
+                                print "Download completed"
+                                time.sleep(2)  # Important to prevent DDoS type control from NCBI
                                 i += 1  # Count the number of downloaded files
 
                             # Parse GB file for required information
