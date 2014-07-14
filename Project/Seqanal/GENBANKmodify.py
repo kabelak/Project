@@ -34,17 +34,18 @@ final_features = []
 for record in SeqIO.parse(open(sys.argv[1], "r+"), "genbank"):
     for feature in record.features:
         if feature.type == "gene" or feature.type == "CDS":
-            if TSS.has_key(feature.qualifiers["locus_tag"][0]):
-                newstart = TSS[feature.qualifiers["locus_tag"][0]]['StartCodon']
-                if feature.location.strand == 1:
-                    feature.location = SeqFeature.FeatureLocation(SeqFeature.ExactPosition(newstart - 1),
-                                                                  SeqFeature.ExactPosition(
-                                                                      feature.location.end.position),
-                                                                  feature.location.strand)
-                else:
-                    feature.location = SeqFeature.FeatureLocation(
-                        SeqFeature.ExactPosition(feature.location.start.position),
-                        SeqFeature.ExactPosition(newstart), feature.location.strand)
+            if "locus_tag" in feature.qualifiers:
+                if TSS.has_key(feature.qualifiers["locus_tag"][0]):
+                    newstart = TSS[feature.qualifiers["locus_tag"][0]]['StartCodon']
+                    if feature.location.strand == 1:
+                        feature.location = SeqFeature.FeatureLocation(SeqFeature.ExactPosition(newstart - 1),
+                                                                      SeqFeature.ExactPosition(
+                                                                          feature.location.end.position),
+                                                                      feature.location.strand)
+                    else:
+                        feature.location = SeqFeature.FeatureLocation(
+                            SeqFeature.ExactPosition(feature.location.start.position),
+                            SeqFeature.ExactPosition(newstart), feature.location.strand)
         final_features.append(feature)  # Append final features
     record.features = final_features
     with open(outfile, "w") as new_gb:
