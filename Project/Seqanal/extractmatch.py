@@ -20,8 +20,9 @@ from Bio import SeqIO
 # For each entry within Spire output (ie, each match), create a temp dict 'matches1' with all the charateristics, then
 # create a glocal dict key for the entry with the characteristics as a value (ie, dict of dicts)
 
-def spireextract(spirefile):
-    import re
+def spireextract(
+        spirefile):  # TODO: Feature, Distance, Position and URL are repeated if there are both up/dowstream matches for a SPIRE entry - resolve! (duplicate the previous data, and add the new entry)
+    import re  # TODO: if you're gona fix this, might as well fix the data structure so as to get the gene names etc
 
     _spire_entry = {}
     _spire_entries = {}
@@ -32,10 +33,27 @@ def spireextract(spirefile):
                 entry = _line
                 _line = next(_f)
                 while not _line.startswith('None'):
-                    _line = re.sub('\n|\t', '', _line)
-                    characteristic = re.search('(.*):\s(.*)', _line)
-                    _spire_entry[characteristic.group(1)] = characteristic.group(2)
+                    while not _line.startswith('\tAlignments'):
+                        _line = re.sub('\n|\t', '', _line)
+                        characteristic = re.search('(.*):\s(.*)', _line)
+                        _spire_entry[characteristic.group(1)] = characteristic.group(2)
+                        _line = next(_f)
                     _line = next(_f)
+                    if _line.startswith('None'):
+                        break
+                    else:
+                        _spire_entry2 = _spire_entry.copy()
+                        while not _line.startswith('\tAlignments'):
+                            _line = re.sub('\n|\t', '', _line)
+                            characteristic = re.search('(.*):\s(.*)', _line)
+                            _spire_entry2[characteristic.group(1)] = characteristic.group(2)
+                            _line = next(_f)
+                        entry2 = str(entry + '2')
+                        if _spire_entry2['Direction'] == 'forward':
+                            _spire_entry2['Direction'] = '+'
+                        else:
+                            _spire_entry2['Direction'] = '-'
+                        _spire_entries[entry2] = _spire_entry2
                 if _spire_entry['Direction'] == 'forward':
                     _spire_entry['Direction'] = '+'
                 else:
@@ -105,16 +123,17 @@ for UTR, area in TSS.items():
                 print 'There is a problem in the strand direction matches...', value['Direction'], ' and ', area[
                     'Direction']
             else:
-                if value['Direction'] == '+':
+                if value[
+                    'Direction'] == '+':  # TODO: forward does not mean the match is upstream - NEED TO FIX! Look at Feature: upstream/downstream
                     if int(area['TSS']) <= int(position.group(1)) and int(area['StartCodon']) >= int(position.group(2)):
                         matches[UTR] = {'UTRStart': int(area['TSS']), 'UTRStop': int(area['StartCodon']),
                                         'IREStart': int(position.group(1)), 'IREStop': int(position.group(2)),
-                                        'Direction': value['Direction']}
+                                        'Direction': value['Direction'], 'Spireseq': str(value['Sequence'])}
                 if value['Direction'] == '-':
                     if int(area['TSS']) >= int(position.group(2)) and int(area['StartCodon']) <= int(position.group(1)):
                         matches[UTR] = {'UTRStart': int(area['StartCodon']), 'UTRStop': int(area['TSS']),
                                         'IREStart': int(position.group(2)), 'IREStop': int(position.group(1)),
-                                        'Direction': value['Direction']}
+                                        'Direction': value['Direction'], 'Spireseq': str(value['Sequence'])}
 
 ### Extract the sequences from the GenBank file
 gb_file = SeqIO.parse(open("mtbtomod.gb", "r"), "genbank")
@@ -130,11 +149,12 @@ for record in gb_file:
             # print 'minus', key, value['Sequence']
 
 fname = re.search('(.*)\.(\w*)', sys.argv[1])
-fname2 = str(fname.group(1)) + '_seqExtract5.' + str(fname.group(2))
+fname2 = str(fname.group(1)) + '_seqExtract52.' + str(fname.group(2))
 with open(fname2, "w") as out:
     for key, value in matches.items():
         out.write('>' + str(key) + '\n' + str(value['Sequence']) + '\n\n')
 
+# out.write('>' + str(key) + value['Direction'] + '\n' + str(value['Sequence']) + '\n     ' + value['Spireseq'] + '\n\n')
 
 '''
 # read in TSS and start codon for each gene
