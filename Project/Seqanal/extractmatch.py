@@ -15,28 +15,38 @@ from Bio import SeqIO
 
 #### Import data from Spire output file
 # Create dicts to score Spire output data
-spire_entry = {}
-spire_entries = {}
+
 
 # For each entry within Spire output (ie, each match), create a temp dict 'matches1' with all the charateristics, then
 # create a glocal dict key for the entry with the characteristics as a value (ie, dict of dicts)
-with open(sys.argv[1], 'rU') as f:
-    for line in f:
-        if line.startswith('Match'):
-            line = re.sub('\n', '', line)
-            entry = line
-            line = next(f)
-            while not line.startswith('None'):
-                line = re.sub('\n|\t', '', line)
-                characteristic = re.search('(.*):\s(.*)', line)
-                spire_entry[characteristic.group(1)] = characteristic.group(2)
-                line = next(f)
-            if spire_entry['Direction'] == 'forward':
-                spire_entry['Direction'] = '+'
-            else:
-                spire_entry['Direction'] = '-'
-            spire_entries[entry] = spire_entry
-            spire_entry = {}
+
+def spireextract(spirefile):
+    import re
+
+    _spire_entry = {}
+    _spire_entries = {}
+    with open(spirefile, 'rU') as _f:
+        for _line in _f:
+            if _line.startswith('Match'):
+                _line = re.sub('\n', '', _line)
+                entry = _line
+                _line = next(_f)
+                while not _line.startswith('None'):
+                    _line = re.sub('\n|\t', '', _line)
+                    characteristic = re.search('(.*):\s(.*)', _line)
+                    _spire_entry[characteristic.group(1)] = characteristic.group(2)
+                    _line = next(_f)
+                if _spire_entry['Direction'] == 'forward':
+                    _spire_entry['Direction'] = '+'
+                else:
+                    _spire_entry['Direction'] = '-'
+                _spire_entries[entry] = _spire_entry
+                _spire_entry = {}
+    return _spire_entries
+
+
+spire_entries = spireextract(sys.argv[1])
+
 '''
 for key, value in spire_entries.items():
     if value['Folds to'] == '     .(((((.....)))))':
@@ -120,7 +130,7 @@ for record in gb_file:
             # print 'minus', key, value['Sequence']
 
 fname = re.search('(.*)\.(\w*)', sys.argv[1])
-fname2 = str(fname.group(1)) + '_seqExtract4.' + str(fname.group(2))
+fname2 = str(fname.group(1)) + '_seqExtract5.' + str(fname.group(2))
 with open(fname2, "w") as out:
     for key, value in matches.items():
         out.write('>' + str(key) + '\n' + str(value['Sequence']) + '\n\n')
