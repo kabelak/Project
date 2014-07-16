@@ -14,51 +14,38 @@ def exceldata(excelfile, sheet):
     data = [[worksheet.cell_value(r, c) for c in range(0, 2)] for r in range(worksheet.nrows)]
     return data
 
-#print sheetgrow.ncols
-#print sheetgrow.nrows
+
+def extractTSS(excellist):
+    forward = [];
+    reverse = []
+    for i in range(5, len(excellist)):
+        if excellist[i][1] == 'F':
+            forward.append(int(excellist[i][0]))
+        elif datagrow[i][1] == 'R':
+            reverse.append(int(excellist[i][0]))
+
+    return forward, reverse
 
 growthfile = "F:\Google Drive\Birkbeck\Project\RNAseq\Cortes sup mat\mmc2expogrowth.xlsx"
 arrestfile = "F:\Google Drive\Birkbeck\Project\RNAseq\Cortes sup mat\mmc6arrest.xlsx"
-
 datagrow = exceldata(growthfile, 5)
 dataarrest = exceldata(arrestfile, 4)
-
-fgrow = []
-rgrow = []
-farrest = []
-rarrest = []
-
-for i in range(5, len(datagrow)):
-    if datagrow[i][1] == 'F':
-        fgrow.append(int(datagrow[i][0]))
-    elif datagrow[i][1] == 'R':
-        rgrow.append(int(datagrow[i][0]))
-
-for i in range(5, len(dataarrest)):
-    if dataarrest[i][1] == 'F':
-        farrest.append(int(dataarrest[i][0]))
-    elif dataarrest[i][1] == 'R':
-        rarrest.append(int(dataarrest[i][0]))
-'''
-print fgrow
-print rgrow
-print farrest
-print rarrest
-'''
+fgrow, rgrow = extractTSS(datagrow)
+farrest, rarrest = extractTSS(dataarrest)
 
 spire_entries = spireextract("mtb.txt")
 
 possiblestartsgrow = defaultdict(list)
 possiblestartsarrest = defaultdict(list)
 spread = 200
-
-
 for key, value in spire_entries.items():
     matchat = re.search('\((\d*):(\d*)', key)
     matchstart = matchat.group(1)
     matchend = matchat.group(2)
     matchloc = re.search('(\w*)\sof.*', value['Feature']).group(1)
+    spire_entries[key]['Match Location'] = str(matchloc)
     gene = re.search('term=(\w*)', value['URL']).group(1)
+    spire_entries[key]['Gene'] = str(gene)
     geneloc = re.search('(\d*)\.\.(\d*)', value['Position'])
     genestart = int(geneloc.group(1))
     geneend = int(geneloc.group(2))
@@ -80,13 +67,17 @@ for key, value in spire_entries.items():
                 if geneend <= TSS <= geneend + spread:
                     possiblestartsarrest[gene].append(TSS)
 
-for kg, vg in sorted(possiblestartsgrow.items()):
-    if possiblestartsarrest.has_key(kg):
-        print kg, ' has start sites:', vg, ' during growth and ', possiblestartsarrest[kg], ' during arrest'
+for key, value in spire_entries.items():
+    if possiblestartsgrow.has_key(value['Gene']):
+        spire_entries[key]['Growth TSSs'] = possiblestartsgrow[value['Gene']]
+    elif possiblestartsarrest.has_key(value['Gene']):
+        spire_entries[key]['Arrest TSSs'] = possiblestartsarrest[value['Gene']]
+    else:
+        del spire_entries[key]
+    if spire_entries.has_key(key):
+        print key, spire_entries[key]
 
-# print possiblestartsarrest
-#print '\n\n'
-#print possiblestartsgrow
+
 
 '''
     if matchloc == 'downstream':
