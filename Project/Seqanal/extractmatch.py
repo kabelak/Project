@@ -35,7 +35,7 @@ def spireextract(
                 while not _line.startswith('None'):
                     while not _line.startswith('\tAlignments'):
                         _line = re.sub('\n|\t', '', _line)
-                        characteristic = re.search('(.*):\s(.*)', _line)
+                        characteristic = re.search('(\w*):\s(.*)', _line)
                         _spire_entry[characteristic.group(1)] = characteristic.group(2)
                         _line = next(_f)
                     _line = next(_f)
