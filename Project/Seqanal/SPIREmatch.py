@@ -66,7 +66,9 @@ for key, value in spire_entries.items():
             for TSS in farrest:
                 if geneend <= TSS <= geneend + spread:
                     possiblestartsarrest[gene].append(TSS)
-
+    if matchloc == 'downstream':
+        print 'downstream'
+        # TODO: look between coding sequence stop position and stop position of IRE (+10 bases?) and find out if there are any TSS between them. If there are, then mark as unlikely to be part of the same transcript as the gene, and thus it is a dubious match.
 for key, value in spire_entries.items():
     if possiblestartsgrow.has_key(value['Gene']):
         spire_entries[key]['Growth TSSs'] = possiblestartsgrow[value['Gene']]
