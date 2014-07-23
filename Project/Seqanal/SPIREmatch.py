@@ -15,7 +15,6 @@ def exceldata(excelfile, sheet):
     data = [[worksheet.cell_value(r, c) for c in range(0, 2)] for r in range(worksheet.nrows)]
     return data
 
-
 def GENBANKparse(gbfile):
     _genes = {}
     _gene = {}
@@ -51,12 +50,13 @@ fgrow, rgrow = extractTSS(datagrow)
 farrest, rarrest = extractTSS(dataarrest)
 
 spire_entries = spireextract("mtb.txt")
-codingregions = GENBANKparse("M.tb H37Rv BCT 2013-Jun-13_modified.gb")
+codingregions = GENBANKparse("M.tb H37Rv BCT 2013-Jun-13.gb")
 
 possiblestartsgrow = defaultdict(list)
 possiblestartsarrest = defaultdict(list)
 spread = 200
 for key, value in spire_entries.items():
+    # # Extract information from a SPIRE match
     matchat = re.search('\((\d*):(\d*)', key)
     matchstart = matchat.group(1)
     matchend = matchat.group(2)
@@ -64,14 +64,15 @@ for key, value in spire_entries.items():
     spire_entries[key]['Match Location'] = str(matchloc)
     gene = re.search('term=(\w*)', value['URL']).group(1)
     spire_entries[key]['Gene'] = str(gene)
-    geneloc = re.search('(\d*)\.\.(\d*)', value['Position'])
-    codingstart = int(geneloc.group(1))
-    codingend = int(geneloc.group(2))
+
+    # # Extract gene start/end information from GB file
+    codingstart = codingregions[gene]['Start']
+    codingend = codingregions[gene]['End']
 
     # # Look at SPIRE matches and figure out if there is a TSS within 'spread' nucleotides of the codingstart
     # TODO: a better way would be to look at the end of coding (stop codon) of the previous gene, instead of using 'spread'
     if matchloc == 'upstream':
-        if value['Direction'] == '+':
+        if value['Direction'] == '+':  # Just do -1 to codingregions
             for TSS in fgrow:
                 if codingstart - spread <= TSS <= codingstart:
                     possiblestartsgrow[gene].append(TSS)
@@ -79,17 +80,18 @@ for key, value in spire_entries.items():
                 if codingstart - spread <= TSS <= codingstart:
                     possiblestartsarrest[gene].append(TSS)
 
-        if value['Direction'] == '-':
+        if value[
+            'Direction'] == '-':  # Need to figure out how to work with the 'c' in Rv number; for upstream, need to look at a larger c number, +1
             for TSS in fgrow:
                 if codingend <= TSS <= codingend + spread:
                     possiblestartsgrow[gene].append(TSS)
             for TSS in farrest:
                 if codingend <= TSS <= codingend + spread:
                     possiblestartsarrest[gene].append(TSS)
-    if matchloc == 'downstream':
-        print 'downstream'
-        if value['Direction'] == '+':
-            for TSS in fgrow:
+                    # if matchloc == 'downstream':
+                    #    print 'downstream'
+                    #    if value['Direction'] == '+':
+                    #        for TSS in fgrow:
 
         # TODO: look between coding sequence stop position and stop position of IRE (+10 bases?) and find out if there are any TSS between them. If there are, then mark as unlikely to be part of the same transcript as the gene, and thus it is a dubious match.
 
