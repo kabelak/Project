@@ -58,6 +58,7 @@ fgrow, rgrow = extractTSS(datagrow)
 farrest, rarrest = extractTSS(dataarrest)
 
 ### Initialise SPIRE and GenBank data into dictionaries
+# TODO: Analyse which SPIRE output and which GenBank file to use!!!!!
 spire_entries = spireextract("mtb.txt")
 codingregions = GENBANKparse("M.tb H37Rv BCT 2013-Jun-13.gb")
 
