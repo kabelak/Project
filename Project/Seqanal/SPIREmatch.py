@@ -14,6 +14,21 @@ def exceldata(excelfile, sheet):
     data = [[worksheet.cell_value(r, c) for c in range(0, 2)] for r in range(worksheet.nrows)]
     return data
 
+
+# ## Function to extract TSS data from a specific type of excel worksheet
+def extractTSS(excellist):
+    forward = [];
+    reverse = []
+    for i in range(5, len(excellist)):
+        if excellist[i][1] == 'F':
+            forward.append(int(excellist[i][0]))
+        elif datagrow[i][1] == 'R':
+            reverse.append(int(excellist[i][0]))
+
+    return forward, reverse
+
+
+### Function to parse GenBank file for gene information
 def GENBANKparse(gbfile):
     _genes = {}
     _gene = {}
@@ -26,23 +41,13 @@ def GENBANKparse(gbfile):
                     _gene['End'] = feature.location.end.position
                     _gene['Strand'] = feature.location.strand
                     if "product" in feature.qualifiers:
-                        _gene['Product'] = feature.qualifiers["Product"]
+                        _gene['Product'] = feature.qualifiers["product"]
                     _genes[str(genename)] = _gene
                     _gene = {}
 
     return _genes
 
-def extractTSS(excellist):
-    forward = [];
-    reverse = []
-    for i in range(5, len(excellist)):
-        if excellist[i][1] == 'F':
-            forward.append(int(excellist[i][0]))
-        elif datagrow[i][1] == 'R':
-            reverse.append(int(excellist[i][0]))
-
-    return forward, reverse
-
+# ## Initialise TSS data into an array
 growthfile = "F:\Google Drive\Birkbeck\Project\RNAseq\Cortes sup mat\mmc2expogrowth.xlsx"
 arrestfile = "F:\Google Drive\Birkbeck\Project\RNAseq\Cortes sup mat\mmc6arrest.xlsx"
 datagrow = exceldata(growthfile, 5)
@@ -50,92 +55,112 @@ dataarrest = exceldata(arrestfile, 4)
 fgrow, rgrow = extractTSS(datagrow)
 farrest, rarrest = extractTSS(dataarrest)
 
+### Initialise SPIRE and GenBank data into dictionaries
 spire_entries = spireextract("mtb.txt")
 codingregions = GENBANKparse("M.tb H37Rv BCT 2013-Jun-13.gb")
 
+### Initialise dictionaries and variables for use below
 possiblestartsgrow = defaultdict(list)
 possiblestartsarrest = defaultdict(list)
+downpossiblestartsgrow = defaultdict(list)
+downpossiblestartsarrest = defaultdict(list)
 spread = 200
+ilength = 5
 for key, value in spire_entries.items():
-    # # Extract information from a SPIRE match
+    ### Extract information from a SPIRE match
     matchat = re.search('\((\d*):(\d*)', key)
-    matchstart = matchat.group(1)
-    matchend = matchat.group(2)
+    matchstart = int(matchat.group(1))
+    matchend = int(matchat.group(2))
     matchloc = re.search('(\w*)\sof.*', value['Feature']).group(1)
     spire_entries[key]['Match Location'] = str(matchloc)
     gene = re.search('term=(\w*)', value['URL']).group(1)
     spire_entries[key]['Gene'] = str(gene)
+    del spire_entries[key]['URL']
 
-    # # Extract gene start/end information from GB file
+    ### Extract gene start/end information from GB file
     codingstart = codingregions[gene]['Start']
     codingend = codingregions[gene]['End']
 
-    # # Look at SPIRE matches and figure out if there is a TSS within 'spread' nucleotides of the codingstart
-    # TODO: a better way would be to look at the end of coding (stop codon) of the previous gene, instead of using 'spread'
+    ### Look at SPIRE matches and figure out if there is a TSS within 'spread' nucleotides of the coding start position
     if matchloc == 'upstream':
-        if value['Direction'] == '+':  # Just do -1 to codingregions
+        if value['Direction'] == '+':
             for TSS in fgrow:
-                if codingstart - spread <= TSS <= codingstart:
+                if codingstart - spread <= TSS <= matchstart - ilength <= codingstart:
                     possiblestartsgrow[gene].append(TSS)
             for TSS in farrest:
-                if codingstart - spread <= TSS <= codingstart:
+                if codingstart - spread <= TSS <= matchstart - ilength <= codingstart:
                     possiblestartsarrest[gene].append(TSS)
-'''
-        if value[
-            'Direction'] == '-':  # Need to figure out how to work with the 'c' in Rv number; for upstream, need to look at a larger c number, +1
-            for TSS in fgrow:
-                if codingend <= TSS <= codingend + spread:
+        if value['Direction'] == '-':
+            for TSS in rgrow:
+                if codingend <= matchstart and matchend + ilength <= TSS <= codingend + spread:
                     possiblestartsgrow[gene].append(TSS)
-            for TSS in farrest:
-                if codingend <= TSS <= codingend + spread:
+            for TSS in rarrest:
+                if codingend <= matchstart and matchend + ilength <= TSS <= codingend + spread:
                     possiblestartsarrest[gene].append(TSS)
-                    # if matchloc == 'downstream':
-                    #    print 'downstream'
-                    #    if value['Direction'] == '+':
-                    #        for TSS in fgrow:
-'''
-        # TODO: look between coding sequence stop position and stop position of IRE (+10 bases?) and find out if there are any TSS between them. If there are, then mark as unlikely to be part of the same transcript as the gene, and thus it is a dubious match.
 
+    # ## For downstream IREs, look if there are TSSs between the IRE and the end of the coding sequence; If there aren't return, the closest possible TSS upstream
+    if matchloc == 'downstream':
+        #print 'downstream'
+        if value['Direction'] == '+':
+            for TSS in fgrow:
+                if codingend <= TSS <= matchstart:
+                    TSS = 'unlikely'
+                    downpossiblestartsgrow[gene].append(TSS)
+                if codingstart - spread <= TSS <= codingstart:
+                    downpossiblestartsgrow[gene].append(TSS)
+            for TSS in farrest:
+                if codingend <= TSS <= matchstart:
+                    TSS = 'unlikely'
+                    downpossiblestartsarrest[gene].append(TSS)
+                if codingstart - spread <= TSS <= codingstart:
+                    downpossiblestartsarrest[gene].append(TSS)
+        if value['Direction'] == '-':
+            for TSS in rgrow:
+                if matchstart - ilength <= TSS <= codingstart:
+                    TSS = 'unlikely'
+                    downpossiblestartsgrow[gene].append(TSS)
+                if codingend <= TSS <= codingend + spread:
+                    downpossiblestartsgrow[gene].append(TSS)
+            for TSS in rarrest:
+                if matchend <= TSS <= codingstart:
+                    TSS = 'unlikely'
+                    downpossiblestartsarrest[gene].append(TSS)
+                if codingend <= TSS <= codingend + spread:
+                    downpossiblestartsarrest[gene].append(TSS)
+
+
+### Iterate through SPIRE matches to add the possible TSSs, and delete the SPIRE match if no TSSs found
 for key, value in spire_entries.items():
     if possiblestartsgrow.has_key(value['Gene']):
         spire_entries[key]['Growth TSSs'] = possiblestartsgrow[value['Gene']]
-    elif possiblestartsarrest.has_key(value['Gene']):
+    if possiblestartsarrest.has_key(value['Gene']):
         spire_entries[key]['Arrest TSSs'] = possiblestartsarrest[value['Gene']]
-    else:
+    if downpossiblestartsgrow.has_key(value['Gene']):
+        if 'unlikely' in downpossiblestartsgrow[value['Gene']]:
+            del downpossiblestartsgrow[value['Gene']]
+        else:
+            spire_entries[key]['down Growth TSSs'] = downpossiblestartsgrow[value['Gene']]
+    if downpossiblestartsarrest.has_key(value['Gene']):
+        if 'unlikely' in downpossiblestartsarrest[value['Gene']]:
+            del downpossiblestartsarrest[value['Gene']]
+        else:
+            spire_entries[key]['down Arrest TSSs'] = downpossiblestartsarrest[value['Gene']]
+
+    if not possiblestartsgrow.has_key(value['Gene']) and not possiblestartsarrest.has_key(value['Gene']) \
+            and not downpossiblestartsgrow.has_key(value['Gene']) and not downpossiblestartsarrest.has_key(value['Gene']):
         del spire_entries[key]
-    if spire_entries.has_key(key):
-        print spire_entries[key]['Gene']
 
-
-
-'''
-    if matchloc == 'downstream':
-        if value['Direction'] == '+':
-            for TSS in fgrow, farrest:
-                if codingstart - 200 <= TSS <= codingstart:
-                    #and there are no TSS between the end of the gene and the start of the next IRE match, as well as no Start Codons
-                    possiblestartsgrow[gene].append(TSS)
-        if value['Direction'] == '-':
-            for TSS in fgrow, farrest:
-                if codingend <= TSS <= codingend + 200:
-                    possiblestartsgrow[gene].append(TSS)
-
-
-
-
-
-    if value['Direction'] == '-':
-        TSSlistgrow = rgrow
-        TSSlistarrest = rarrest
-    else:
-        TSSlistgrow = fgrow
-        TSSlistarrest = farrest
-
-    if value['Direction'] == '+':
-        for TSS in fgrow:
-            if codingstart - 200 <= TSS <= codingstart:
-                possiblestartsgrow[gene].append(TSS)
-
-print possiblestartsgrow
-'''
-
+# for key, value in sorted(spire_entries.items(), key=lambda x: x[1]):
+### Print out values
+for key, value in spire_entries.items():
+    a = spire_entries[key]
+    print '\n%s on the %s strand giving IRE sequence %s which folds to %s with loop %s and is %s (%s, %s).' % \
+          (key, a['Direction'], a['Sequence'], a['Folds to'], a['region'], a['Feature'], a['Gene'], a['Position'])
+    if 'Growth TSSs' in a:
+        print 'Possible exponential growth TSS(s):', a['Growth TSSs']
+    if 'Arrest TSSs' in a:
+        print 'Possible starvation TSS(s):', a['Arrest TSSs']
+    if 'down Growth TSSs' in a:
+        print 'IRE has no TSS between itself and end of CDS; Possible exponential growth TSS(s):', a['down Growth TSSs']
+    if 'down Arrest TSSs' in a:
+        print 'IRE has no TSS between itself and end of CDS; Possible starvation TSS(s):', a['down Arrest TSSs']
