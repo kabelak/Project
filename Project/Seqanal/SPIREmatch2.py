@@ -3,8 +3,8 @@ __author__ = 'Kavin'
 import sys
 import xlrd
 import re
-from test import spireextract
-# from extractmatch import spireextract
+from SPIREmatch import GENBANKparse
+from extractmatch import spireextract
 from collections import defaultdict
 from Bio import SeqIO
 
@@ -22,31 +22,12 @@ def iterategene(genename, decrement=True):
 
     return newname
 
-
-# ## Function to extract data from an excel worksheet
+### Function to extract data from an excel worksheet
 def exceldata(excelfile, sheet):
     workbook = xlrd.open_workbook(excelfile)
     worksheet = workbook.sheet_by_index(sheet)
     data = [[worksheet.cell_value(r, c) for c in range(0, 2)] for r in range(worksheet.nrows)]
     return data
-
-
-def GENBANKparse(gbfile):
-    _genes = {}
-    _gene = {}
-    for record in SeqIO.parse(open(gbfile, "r+"), "genbank"):
-        for feature in record.features:
-            if feature.type == "CDS":
-                if "locus_tag" in feature.qualifiers:
-                    genename = feature.qualifiers["locus_tag"][0]
-                    _gene['Start'] = feature.location.start.position
-                    _gene['End'] = feature.location.end.position
-                    _gene['Strand'] = feature.location.strand
-                    _genes[str(genename)] = _gene
-                    _gene = {}
-
-    return _genes
-
 
 def extractTSS(excellist):
     forward = [];
@@ -58,7 +39,6 @@ def extractTSS(excellist):
             reverse.append(int(excellist[i][0]))
 
     return forward, reverse
-
 
 growthfile = "F:\Google Drive\Birkbeck\Project\RNAseq\Cortes sup mat\mmc2expogrowth.xlsx"
 arrestfile = "F:\Google Drive\Birkbeck\Project\RNAseq\Cortes sup mat\mmc6arrest.xlsx"

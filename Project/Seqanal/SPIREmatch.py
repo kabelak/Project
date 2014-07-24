@@ -3,8 +3,7 @@ __author__ = 'Kavin'
 import sys
 import xlrd
 import re
-from test import spireextract
-# from extractmatch import spireextract
+from extractmatch import spireextract
 from collections import defaultdict
 from Bio import SeqIO
 
@@ -26,6 +25,8 @@ def GENBANKparse(gbfile):
                     _gene['Start'] = feature.location.start.position
                     _gene['End'] = feature.location.end.position
                     _gene['Strand'] = feature.location.strand
+                    if "product" in feature.qualifiers:
+                        _gene['Product'] = feature.qualifiers["Product"]
                     _genes[str(genename)] = _gene
                     _gene = {}
 
@@ -79,7 +80,7 @@ for key, value in spire_entries.items():
             for TSS in farrest:
                 if codingstart - spread <= TSS <= codingstart:
                     possiblestartsarrest[gene].append(TSS)
-
+'''
         if value[
             'Direction'] == '-':  # Need to figure out how to work with the 'c' in Rv number; for upstream, need to look at a larger c number, +1
             for TSS in fgrow:
@@ -92,7 +93,7 @@ for key, value in spire_entries.items():
                     #    print 'downstream'
                     #    if value['Direction'] == '+':
                     #        for TSS in fgrow:
-
+'''
         # TODO: look between coding sequence stop position and stop position of IRE (+10 bases?) and find out if there are any TSS between them. If there are, then mark as unlikely to be part of the same transcript as the gene, and thus it is a dubious match.
 
 for key, value in spire_entries.items():
@@ -103,7 +104,7 @@ for key, value in spire_entries.items():
     else:
         del spire_entries[key]
     if spire_entries.has_key(key):
-        print key, spire_entries[key]
+        print spire_entries[key]['Gene']
 
 
 
