@@ -7,7 +7,7 @@ from extractmatch import spireextract
 from collections import defaultdict
 from Bio import SeqIO
 
-### Function to extract data from an excel worksheet
+# ## Function to extract data from an excel worksheet
 def exceldata(excelfile, sheet):
     workbook = xlrd.open_workbook(excelfile)
     worksheet = workbook.sheet_by_index(sheet)
@@ -96,10 +96,12 @@ for key, value in spire_entries.items():
                     possiblestartsarrest[gene].append(TSS)
         if value['Direction'] == '-':
             for TSS in rgrow:
-                if codingend <= matchstart and matchend + ilength <= TSS <= codingregions.values()[position + 1]['Start']:
+                if codingend <= matchstart and matchend + ilength <= TSS <= codingregions.values()[position + 1][
+                    'Start']:
                     possiblestartsgrow[gene].append(TSS)
             for TSS in rarrest:
-                if codingend <= matchstart and matchend + ilength <= TSS <= codingregions.values()[position + 1]['Start']:
+                if codingend <= matchstart and matchend + ilength <= TSS <= codingregions.values()[position + 1][
+                    'Start']:
                     possiblestartsarrest[gene].append(TSS)
 
     # ## For downstream IREs, look if there are TSSs between the IRE and the end of the coding sequence; If there aren't return, the closest possible TSS upstream
@@ -150,7 +152,8 @@ for key, value in spire_entries.items():
             spire_entries[key]['down Arrest TSSs'] = downpossiblestartsarrest[value['Gene']]
 
     if not possiblestartsgrow.has_key(value['Gene']) and not possiblestartsarrest.has_key(value['Gene']) \
-            and not downpossiblestartsgrow.has_key(value['Gene']) and not downpossiblestartsarrest.has_key(value['Gene']):
+            and not downpossiblestartsgrow.has_key(value['Gene']) and not downpossiblestartsarrest.has_key(
+            value['Gene']):
         del spire_entries[key]
 
 
