@@ -50,36 +50,3 @@ for record in SeqIO.parse(open(sys.argv[1], "r+"), "genbank"):
     record.features = final_features
     with open(outfile, "w") as new_gb:
         SeqIO.write(record, new_gb, "genbank")
-
-'''
-        if mysnp in feature:
-            if feature.type == 'CDS':
-                if 'product' in feature.qualifiers:
-                    print feature.qualifiers['product'][0]
-                    #print("%s %s" % (feature.type, feature.qualifiers.get('product')))
-                location = feature.location
-                if location.strand == 1:
-                    coding_start = location.start.geneIndex
-                    coding_end = location.end.geneIndex
-                    print record.seq[coding_start:coding_end]
-                else:
-                    coding_start = location.end.geneIndex
-                    coding_end = location.start.geneIndex
-                    print record.seq[coding_end:coding_start]
-                    print 'Please note upstream sequence starts after the end of the sequence in this case'
-                print location.strand, coding_start, coding_end
-
-
-x = 0
-final_features = []
-for f in record.features:
-    if f.type == "CDS":
-        f.qualifiers["locus_tag"] = "%s_%s" % (record.id, x+1)
-        x += 1
-    final_features.append(f)
-
-record.features = final_features
-with open("/Users/k/Desktop/prueba/contig_for_rast.gbk","w") as for_rast:
-    SeqIO.write(record, for_rast, "genbank")
-
-'''
