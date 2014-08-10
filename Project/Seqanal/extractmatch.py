@@ -35,7 +35,7 @@ def spireextract(
                 while not _line.startswith('None'):
                     while not _line.startswith('\tAlignments'):
                         _line = re.sub('\n|\t', '', _line)
-                        characteristic = re.search('(\w*):\s(.*)', _line)
+                        characteristic = re.search('(\w*\s?\w{0,2}):\s(.*)', _line)
                         _spire_entry[characteristic.group(1)] = characteristic.group(2)
                         _line = next(_f)
                     _line = next(_f)
@@ -63,102 +63,88 @@ def spireextract(
     return _spire_entries
 
 
-spire_entries = spireextract(sys.argv[1])
+def main(argv):
+    spire_entries = spireextract(argv)
 
-'''
-for key, value in spire_entries.items():
-    if value['Folds to'] == '     .(((((.....)))))':
-        print key, '\n'
-        print value['URL'], '\n'
-'''
-#### Import data from Excel workbook/sheet
-workbook = xlrd.open_workbook("F:\Google Drive\Birkbeck\Project\RNAseq\Cortes sup mat\mmc3TSSvsStartCodon.xlsx")
-# workbook = xlrd.open_workbook(sys.argv[2])
-sheet = workbook.sheet_by_index(0)
-data = [[sheet.cell_value(r, c) for c in range(sheet.ncols)] for r in range(sheet.nrows)]
+    # ### Import data from Excel workbook/sheet
+    workbook = xlrd.open_workbook("F:\Google Drive\Birkbeck\Project\RNAseq\Cortes sup mat\mmc3TSSvsStartCodon.xlsx")
+    # workbook = xlrd.open_workbook(sys.argv[2])
+    sheet = workbook.sheet_by_index(0)
+    data = [[sheet.cell_value(r, c) for c in range(sheet.ncols)] for r in range(sheet.nrows)]
 
-# Create dicts to store TSS data
-TSS = {}
-row = {}
-
-# For each entry (row), store the startcodon and TSS as key/values within the value of a global dict
-# with gene name as key
-for i in range(2, sheet.nrows - 1):
-    # print i
-    while data[i][6] == '' and data[i][9] == '':
-        i += 1
-    Gene = data[i][0]
-    row['Direction'] = str(data[i][3])
-    # print Gene
-    if data[i][5] < -0.7:
-        row['StartCodon'] = int(data[i][4])
-    else:
-        row['StartCodon'] = int(data[i][2])
-    if data[i][6] == '':
-        # If empty, go to next iteration, ie internal TSS
-        row['TSS'] = int(data[i][9])
-    else:
-        row['TSS'] = int(data[i][6])
-    TSS[Gene] = row
+    # Create dicts to store TSS data
+    TSS = {}
     row = {}
 
-'''
-for key, value in TSS.items():
-    print key, '\n'
-    print value, '\n'
+    # For each entry (row), store the startcodon and TSS as key/values within the value of a global dict
+    # with gene name as key
+    for i in range(2, sheet.nrows - 1):
+        while data[i][6] == '' and data[i][9] == '':
+            i += 1
+        Gene = data[i][0]
+        row['Direction'] = str(data[i][3])
+        if data[i][5] < -0.7:
+            row['StartCodon'] = int(data[i][4])
+        else:
+            row['StartCodon'] = int(data[i][2])
+        if data[i][6] == '':
+            # If empty, go to next iteration, ie internal TSS
+            row['TSS'] = int(data[i][9])
+        else:
+            row['TSS'] = int(data[i][6])
+        TSS[Gene] = row
+        row = {}
 
-'''
-#### Find intersection
-# For each gene within the Excel sheet, iterate through entries within Spire output to find a match
-# with SeqIO.parse(open("mtbtomod.gb", "r"), "genbank") as gbfile:
+    # ### Find intersection
+    # For each gene within the Excel sheet, iterate through entries within Spire output to find a match
+    # with SeqIO.parse(open("mtbtomod.gb", "r"), "genbank") as gbfile:
 
-matches = {}
+    matches = {}
 
-for UTR, area in TSS.items():
-    for key, value in spire_entries.items():
-        position = re.search('\((\d*):(\d*)', key)
-        gene = re.search('term=(\w*)', value['URL'])
-        if UTR == gene.group(1):
-            if value['Direction'] != area['Direction']:
-                print 'There is a problem in the strand direction matches...', value['Direction'], ' and ', area[
-                    'Direction']
-            else:
-                if value[
-                    'Direction'] == '+':  # TODO: forward does not mean the match is upstream - NEED TO FIX! Look at Feature: upstream/downstream
-                    if int(area['TSS']) <= int(position.group(1)) and int(area['StartCodon']) >= int(position.group(2)):
-                        matches[UTR] = {'UTRStart': int(area['TSS']), 'UTRStop': int(area['StartCodon']),
-                                        'IREStart': int(position.group(1)), 'IREStop': int(position.group(2)),
-                                        'Direction': value['Direction'], 'Spireseq': str(value['Sequence'])}
-                if value['Direction'] == '-':
-                    if int(area['TSS']) >= int(position.group(2)) and int(area['StartCodon']) <= int(position.group(1)):
-                        matches[UTR] = {'UTRStart': int(area['StartCodon']), 'UTRStop': int(area['TSS']),
-                                        'IREStart': int(position.group(2)), 'IREStop': int(position.group(1)),
-                                        'Direction': value['Direction'], 'Spireseq': str(value['Sequence'])}
+    for UTR, area in TSS.items():
+        for key, value in spire_entries.items():
+            position = re.search('\((\d*):(\d*)', key)
+            gene = re.search('term=(\w*)', value['URL'])
+            if UTR == gene.group(1):
+                if value['Direction'] != area['Direction']:
+                    print 'There is a problem in the strand direction matches...', value['Direction'], ' and ', area[
+                        'Direction']
+                else:
+                    if value[
+                        'Direction'] == '+':  # TODO: forward does not mean the match is upstream - NEED TO FIX! Look at Feature: upstream/downstream
+                        if int(area['TSS']) <= int(position.group(1)) and int(area['StartCodon']) >= int(
+                                position.group(2)):
+                            matches[UTR] = {'UTRStart': int(area['TSS']), 'UTRStop': int(area['StartCodon']),
+                                            'IREStart': int(position.group(1)), 'IREStop': int(position.group(2)),
+                                            'Direction': value['Direction'], 'Spireseq': str(value['Sequence']),
+                                            'Feature': str(value['Feature'])}
+                    if value['Direction'] == '-':
+                        if int(area['TSS']) >= int(position.group(2)) and int(area['StartCodon']) <= int(
+                                position.group(1)):
+                            matches[UTR] = {'UTRStart': int(area['StartCodon']), 'UTRStop': int(area['TSS']),
+                                            'IREStart': int(position.group(2)), 'IREStop': int(position.group(1)),
+                                            'Direction': value['Direction'], 'Spireseq': str(value['Sequence']),
+                                            'Feature': str(value['Feature'])}
 
-### Extract the sequences from the GenBank file
-gb_file = SeqIO.parse(open("mtbtomod.gb", "r"), "genbank")
-for record in gb_file:
-    for key, value in matches.items():
-        if value['Direction'] == '+':
-            value['Sequence'] = record.seq[value['IREStart'] - 10:value['IREStop'] + 10]
-            # print key, value['Sequence']
-        if value['Direction'] == '-':
-            ire_sequence = record.seq[value['IREStop'] - 10:value['IREStart'] + 10]
-            value[
-                'Sequence'] = ire_sequence.reverse_complement()  # Extracts the reverse complement (ie, 3'->5' read, opposite strand)
-            # print 'minus', key, value['Sequence']
+    # ## Extract the sequences from the GenBank file
+    gb_file = SeqIO.parse(
+        open("F:\Google Drive\Birkbeck\Project\Program\Project\Seqanal\M.tb H37Rv BCT 2013-Jun-13_modified.gb", "r"),
+        "genbank")
+    for record in gb_file:
+        for key, value in matches.items():
+            if value['Direction'] == '+':
+                value['Sequence'] = record.seq[value['IREStart'] - 10:value['IREStop'] + 10]
+            if value['Direction'] == '-':
+                ire_sequence = record.seq[value['IREStop'] - 10:value['IREStart'] + 10]
+                value[
+                    'Sequence'] = ire_sequence.reverse_complement()  # Extracts the reverse complement (ie, 3'->5' read, opposite strand)
 
-fname = re.search('(.*)\.(\w*)', sys.argv[1])
-fname2 = str(fname.group(1)) + '_seqExtract52.' + str(fname.group(2))
-with open(fname2, "w") as out:
-    for key, value in matches.items():
-        out.write('>' + str(key) + '\n' + str(value['Sequence']) + '\n\n')
+    fname = re.search('(.*)\.(\w*)', sys.argv[1])
+    fname2 = str(fname.group(1)) + '_seqExtract61.' + str(fname.group(2))
+    with open(fname2, "w") as out:
+        for key, value in matches.items():
+            out.write('>' + str(key) + ' ' + str(value['Feature']) + '\n' + str(value['Sequence']) + '\n\n')
 
-# out.write('>' + str(key) + value['Direction'] + '\n' + str(value['Sequence']) + '\n     ' + value['Spireseq'] + '\n\n')
 
-'''
-# read in TSS and start codon for each gene
-# case: what about matches where there are sequences upstream and downstream? -- duplicate entry up to certain point, then replace dict values
-# rule 1: matches between TSS and start codon - read from other file
-# rule 2: remove ones which do not fold nicely
-'''
+if __name__ == "__main__":
+    main(sys.argv[1])
