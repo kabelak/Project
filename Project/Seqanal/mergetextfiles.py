@@ -1,8 +1,6 @@
 __author__ = 'Kavin'
 
-
 import os
-import re
 
 output = open("merge.txt", "w")
 
@@ -13,15 +11,4 @@ for f in filenames:
             content = content_file.read()
             output.write(content + '\n')
 
-
-
 output.close()
-
-
-
-
-#from os import listdir
-#from os.path import isfile, join
-#onlyfiles = [ f for f in listdir('.') if isfile(join(mypath,f)) ]
-
-#files = [f for f in os.listdir('.') if os.path.isfile(f)]

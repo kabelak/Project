@@ -59,12 +59,12 @@ for record in SeqIO.parse(open(sys.argv[1], "r+"), "genbank"):
                     #print("%s %s" % (feature.type, feature.qualifiers.get('product')))
                 location = feature.location
                 if location.strand == 1:
-                    coding_start = location.start.position
-                    coding_end = location.end.position
+                    coding_start = location.start.geneIndex
+                    coding_end = location.end.geneIndex
                     print record.seq[coding_start:coding_end]
                 else:
-                    coding_start = location.end.position
-                    coding_end = location.start.position
+                    coding_start = location.end.geneIndex
+                    coding_end = location.start.geneIndex
                     print record.seq[coding_end:coding_start]
                     print 'Please note upstream sequence starts after the end of the sequence in this case'
                 print location.strand, coding_start, coding_end

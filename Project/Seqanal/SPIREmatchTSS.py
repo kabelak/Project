@@ -59,8 +59,8 @@ farrest, rarrest = extractTSS(dataarrest)
 
 ### Initialise SPIRE and GenBank data into dictionaries
 # TODO: Analyse which SPIRE output and which GenBank file to use!!!!!
-spire_entries = spireextract("mtb.txt")
-codingregions = GENBANKparse("M.tb H37Rv BCT 2013-Jun-13.gb")
+spire_entries = spireextract("M.tb H37Rv CON 2014-Jul-11_modified SPIRE 600.txt")
+codingregions = GENBANKparse("M.tb H37Rv CON 2014-Jul-11_modified.gb")
 
 ### Initialise dictionaries and variables for use below
 possiblestartsgrow = defaultdict(list)
@@ -83,55 +83,54 @@ for key, value in spire_entries.items():
     ### Extract gene start/end information from GB file
     codingstart = codingregions[gene]['Start']
     codingend = codingregions[gene]['End']
-    position = codingregions.keys().index(gene)
+    geneIndex = codingregions.keys().index(gene)
 
-    ### Look at SPIRE matches and figure out if there is a TSS within 'spread' nucleotides of the coding start position
+    # ## Look at SPIRE matches and figure out if there is a TSS within 'spread' nucleotides of the coding start geneIndex
     if matchloc == 'upstream':
         if value['Direction'] == '+':
             for TSS in fgrow:
-                if codingregions.values()[position - 1]['End'] <= TSS <= matchstart - ilength <= codingstart:
+                if codingregions.values()[geneIndex - 1]['End'] <= TSS <= matchstart - ilength <= codingstart:
                     possiblestartsgrow[gene].append(TSS)
             for TSS in farrest:
-                if codingregions.values()[position - 1]['End'] <= TSS <= matchstart - ilength <= codingstart:
+                if codingregions.values()[geneIndex - 1]['End'] <= TSS <= matchstart - ilength <= codingstart:
                     possiblestartsarrest[gene].append(TSS)
         if value['Direction'] == '-':
             for TSS in rgrow:
-                if codingend <= matchstart and matchend + ilength <= TSS <= codingregions.values()[position + 1][
+                if codingend <= matchstart and matchend + ilength <= TSS <= codingregions.values()[geneIndex + 1][
                     'Start']:
                     possiblestartsgrow[gene].append(TSS)
             for TSS in rarrest:
-                if codingend <= matchstart and matchend + ilength <= TSS <= codingregions.values()[position + 1][
+                if codingend <= matchstart and matchend + ilength <= TSS <= codingregions.values()[geneIndex + 1][
                     'Start']:
                     possiblestartsarrest[gene].append(TSS)
 
     # ## For downstream IREs, look if there are TSSs between the IRE and the end of the coding sequence; If there aren't return, the closest possible TSS upstream
     if matchloc == 'downstream':
-        #print 'downstream'
         if value['Direction'] == '+':
             for TSS in fgrow:
                 if codingend <= TSS <= matchstart:
                     TSS = 'unlikely'
                     downpossiblestartsgrow[gene].append(TSS)
-                if codingregions.values()[position - 1]['End'] <= TSS <= codingstart:
+                if codingregions.values()[geneIndex - 1]['End'] <= TSS <= codingstart:
                     downpossiblestartsgrow[gene].append(TSS)
             for TSS in farrest:
                 if codingend <= TSS <= matchstart:
                     TSS = 'unlikely'
                     downpossiblestartsarrest[gene].append(TSS)
-                if codingregions.values()[position - 1]['End'] <= TSS <= codingstart:
+                if codingregions.values()[geneIndex - 1]['End'] <= TSS <= codingstart:
                     downpossiblestartsarrest[gene].append(TSS)
         if value['Direction'] == '-':
             for TSS in rgrow:
                 if matchstart - ilength <= TSS <= codingstart:
                     TSS = 'unlikely'
                     downpossiblestartsgrow[gene].append(TSS)
-                if codingend <= TSS <= codingregions.values()[position + 1]['Start']:
+                if codingend <= TSS <= codingregions.values()[geneIndex + 1]['Start']:
                     downpossiblestartsgrow[gene].append(TSS)
             for TSS in rarrest:
                 if matchend <= TSS <= codingstart:
                     TSS = 'unlikely'
                     downpossiblestartsarrest[gene].append(TSS)
-                if codingend <= TSS <= codingregions.values()[position + 1]['Start']:
+                if codingend <= TSS <= codingregions.values()[geneIndex + 1]['Start']:
                     downpossiblestartsarrest[gene].append(TSS)
 
 ### Iterate through SPIRE matches to add the possible TSSs, and delete the SPIRE match if no TSSs found

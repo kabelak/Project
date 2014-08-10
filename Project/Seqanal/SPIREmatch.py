@@ -81,7 +81,7 @@ for key, value in spire_entries.items():
     codingstart = codingregions[gene]['Start']
     codingend = codingregions[gene]['End']
 
-    ### Look at SPIRE matches and figure out if there is a TSS within 'spread' nucleotides of the coding start position
+    # ## Look at SPIRE matches and figure out if there is a TSS within 'spread' nucleotides of the coding start geneIndex
     if matchloc == 'upstream':
         if value['Direction'] == '+':
             for TSS in fgrow:
@@ -100,7 +100,6 @@ for key, value in spire_entries.items():
 
     # ## For downstream IREs, look if there are TSSs between the IRE and the end of the coding sequence; If there aren't return, the closest possible TSS upstream
     if matchloc == 'downstream':
-        #print 'downstream'
         if value['Direction'] == '+':
             for TSS in fgrow:
                 if codingend <= TSS <= matchstart:
