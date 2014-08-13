@@ -130,7 +130,7 @@ def main(argv):
                             # Download GB file if not previously downloaded
                             if os.path.exists(str(gbID.group(1) + '.gb')):
                                 if os.path.getsize(str(gbID.group(1) + '.gb')) > 10:
-                                    print "GenBank file previously downloaded"
+                                    pass
                                 else:
                                     print "File corrupt; Re-downloading GenBank file for", gbID.group(1)
                                     GenBankDownload(gbID.group(1))
