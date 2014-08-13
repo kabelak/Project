@@ -32,10 +32,12 @@ def GenBankParser(gbFile, start, frame, IRE=200,
                         if 'product' in feature.qualifiers:
                             product = feature.qualifiers['product'][0]
                         location = feature.location
-                        # TODO how to make sure it is checking in the right strand? At the moment, the 'start in feature' seems to find... but how?
+                        # # Check if strand predicted by BLAST matches strand in GB file
                         if frame != location.strand:
                             print '!!!!!Strands do not match! The GBrecord strand is', location.strand, 'while the BLAST strand is', frame, '!!!!!!!!'
                             product = str(product + ' DIFFERENT STRANDS')
+
+                        ## Extract the sequence
                         if Upstream:
                             if location.strand == 1:
                                 ire_start = location.start.position - IRE
@@ -105,7 +107,7 @@ def main(argv):
             for alignment in blast_record.alignments:
                 for hsp in alignment.hsps:
                     identity = int((hsp.identities / hsp.align_length) * 100)
-                    if identity > 0:
+                    if identity > 90:  ##TODO: change back to 0
                         if hsp.expect < 0.01:
                             print '****Alignment****'
                             gbID = re.search('gi\|.*\|.*\|(.*)\|', alignment.hit_id)
@@ -126,11 +128,20 @@ def main(argv):
                             #print hsp.sbjct[:50] + '...'
 
                             # Download GB file if not previously downloaded
-                            if not os.path.exists(str(gbID.group(1) + '.gb')):
+                            if os.path.exists(str(gbID.group(1) + '.gb')):
+                                if os.path.getsize(str(gbID.group(1) + '.gb')) > 10:
+                                    print "GenBank file previously downloaded"
+                                else:
+                                    print "File corrupt; Re-downloading GenBank file for", gbID.group(1)
+                                    GenBankDownload(gbID.group(1))
+                                    print "Download completed"
+                                    time.sleep(1)  # Important to prevent DDoS type control from NCBI
+                                    i += 1  # Count the number of downloaded files
+                            else:
                                 print "Downloading GenBank file for", gbID.group(1)
                                 GenBankDownload(gbID.group(1))
                                 print "Download completed"
-                                time.sleep(2)  # Important to prevent DDoS type control from NCBI
+                                time.sleep(1)  # Important to prevent DDoS type control from NCBI
                                 i += 1  # Count the number of downloaded files
 
                             # Parse GB file for required information
