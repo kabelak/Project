@@ -86,6 +86,7 @@ for key, value in spire_entries.items():
     geneIndex = codingregions.keys().index(gene)
 
     # ## Look at SPIRE matches and figure out if there is a TSS within 'spread' nucleotides of the coding start geneIndex
+    ### TODO: to look for IREs within the gene, sufficient to pick the closest TSS to the start codon, then make sure the IRE is no further than, say, the begining third or half of the putative CDS.  - what would be the point though? we're not sure those IRE sequences should be like that...
     if matchloc == 'upstream':
         if value['Direction'] == '+':
             for TSS in fgrow:
@@ -104,7 +105,7 @@ for key, value in spire_entries.items():
                     'Start']:
                     possiblestartsarrest[gene].append(TSS)
 
-    # ## For downstream IREs, look if there are TSSs between the IRE and the end of the coding sequence; If there aren't return, the closest possible TSS upstream
+    ### For downstream IREs, look if there are TSSs between the IRE and the end of the coding sequence; If there aren't return, the closest possible TSS upstream
     if matchloc == 'downstream':
         if value['Direction'] == '+':
             for TSS in fgrow:
