@@ -59,7 +59,7 @@ farrest, rarrest = extractTSS(dataarrest)
 
 ### Initialise SPIRE and GenBank data into dictionaries
 # TODO: Analyse which SPIRE output and which GenBank file to use!!!!!
-spire_entries = spireextract("M.tb H37Rv CON 2014-Jul-11_modified SPIRE 600.txt")
+spire_entries = spireextract("M.tb H37Rv CON 2014-Jul-11_modified SPIRE minusHypo.txt")
 codingregions = GENBANKparse("M.tb H37Rv CON 2014-Jul-11_modified.gb")
 
 ### Initialise dictionaries and variables for use below
@@ -109,26 +109,28 @@ for key, value in spire_entries.items():
     if matchloc == 'downstream':
         if value['Direction'] == '+':
             for TSS in fgrow:
-                if codingend <= TSS <= matchstart:
+                if codingend <= TSS <= matchstart or matchend >= codingregions.values()[geneIndex + 1]['Start']:
                     TSS = 'unlikely'
                     downpossiblestartsgrow[gene].append(TSS)
                 if codingregions.values()[geneIndex - 1]['End'] <= TSS <= codingstart:
                     downpossiblestartsgrow[gene].append(TSS)
             for TSS in farrest:
-                if codingend <= TSS <= matchstart:
+                if codingend <= TSS <= matchstart or matchend >= codingregions.values()[geneIndex + 1]['Start']:
                     TSS = 'unlikely'
                     downpossiblestartsarrest[gene].append(TSS)
                 if codingregions.values()[geneIndex - 1]['End'] <= TSS <= codingstart:
                     downpossiblestartsarrest[gene].append(TSS)
         if value['Direction'] == '-':
             for TSS in rgrow:
-                if matchstart - ilength <= TSS <= codingstart:
+                if matchstart - ilength <= TSS <= codingstart or matchstart <= codingregions.values()[geneIndex - 1][
+                    'End']:
                     TSS = 'unlikely'
                     downpossiblestartsgrow[gene].append(TSS)
                 if codingend <= TSS <= codingregions.values()[geneIndex + 1]['Start']:
                     downpossiblestartsgrow[gene].append(TSS)
             for TSS in rarrest:
-                if matchend <= TSS <= codingstart:
+                if matchstart - ilength <= TSS <= codingstart or matchstart <= codingregions.values()[geneIndex - 1][
+                    'End']:
                     TSS = 'unlikely'
                     downpossiblestartsarrest[gene].append(TSS)
                 if codingend <= TSS <= codingregions.values()[geneIndex + 1]['Start']:
@@ -163,12 +165,13 @@ print 'Number of successful matches: %i\n#################################\n\n' 
 for key, value in spire_entries.items():
     a = spire_entries[key]
     print '\n%s on the %s strand giving IRE sequence %s which folds to %s with loop %s and is %s (%s, %s).' % \
-          (key, a['Direction'], a['Sequence'], a['Folds to'], a['region'], a['Feature'], a['Gene'], a['Position'])
+          (key, a['Direction'], a['Sequence'], a['Folds to'].strip(), a['region'], a['Feature'], a['Gene'],
+           a['Position'])
     if 'Growth TSSs' in a:
         print 'Possible exponential growth TSS(s):', a['Growth TSSs']
     if 'Arrest TSSs' in a:
         print 'Possible starvation TSS(s):', a['Arrest TSSs']
     if 'down Growth TSSs' in a:
-        print 'IRE has no TSS between itself and end of CDS; Possible exponential growth TSS(s):', a['down Growth TSSs']
+        print 'No TSS between end of CDS and IRE; Possible exponential growth TSS(s):', a['down Growth TSSs']
     if 'down Arrest TSSs' in a:
-        print 'IRE has no TSS between itself and end of CDS; Possible starvation TSS(s):', a['down Arrest TSSs']
+        print 'No TSS between end of CDS and IRE; Possible starvation TSS(s):', a['down Arrest TSSs']
