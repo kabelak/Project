@@ -107,7 +107,7 @@ def main(argv):
             for alignment in blast_record.alignments:
                 for hsp in alignment.hsps:
                     identity = int((hsp.identities / hsp.align_length) * 100)
-                    if identity > 90:  ##TODO: change back to 0
+                    if identity > 0:
                         if hsp.expect < 0.01:
                             print '****Alignment****'
                             gbID = re.search('gi\|.*\|.*\|(.*)\|', alignment.hit_id)
